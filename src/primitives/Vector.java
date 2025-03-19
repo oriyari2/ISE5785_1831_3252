@@ -1,26 +1,24 @@
 package primitives;
 
 public class Vector extends Point {
-    protected Double3 xyz;
-
-    public Vector(double x, double y, double z, Double3 xyz) {
+    public Vector(double x, double y, double z) {
         super(x, y, z);
-        this.xyz = xyz;
         if (this.xyz.equals(Double3.ZERO))
             throw new IllegalArgumentException("We can't create zero vector");
+    }
+    public Vector(Double3 xyz){
+        super(xyz);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Vector)) return false;
-        Vector other = (Vector) obj;
-        return xyz.equals(other.xyz);
+        return obj instanceof Vector other && super.equals(other);
     }
 
     @Override
     public String toString() {
-        return xyz.toString();
+        return super.toString();
     }
 
     public double lengthSquared() {
