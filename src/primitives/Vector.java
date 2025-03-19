@@ -1,17 +1,13 @@
 package primitives;
 
-public class Vector {
+public class Vector extends Point {
     protected Double3 xyz;
 
-    public Vector(double x, double y, double z) {
-        this.xyz = new Double3(x, y, z);
-    }
-
-    public Vector(Double3 xyz) {
-        if (xyz.equals(Double3.ZERO)) {
-            throw new IllegalArgumentException("Zero vector is not allowed");
-        }
+    public Vector(double x, double y, double z, Double3 xyz) {
+        super(x, y, z);
         this.xyz = xyz;
+        if (this.xyz.equals(Double3.ZERO))
+            throw new IllegalArgumentException("We can't create zero vector");
     }
 
     @Override

@@ -1,10 +1,13 @@
 package primitives;
 
 public class Point {
-    protected final Double3 xyz;
+    final Double3 xyz;
 
     public Point(double x, double y, double z) {
         this.xyz = new Double3(x, y, z);
+    }
+
+    public Point(Double3 double3) {
     }
 
     @Override
@@ -21,7 +24,7 @@ public class Point {
 
     public Point add(Vector vector) {
         Double3 double3 = this.xyz.add(vector.xyz);
-        return new Point(double3.d1(),double3.d2(), double3.d3());
+        return new Point(double3);
     }
 
     public Vector subtract(Point other) {
