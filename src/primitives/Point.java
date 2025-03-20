@@ -2,7 +2,7 @@ package primitives;
 
 public class Point {
     final Double3 xyz;
-    public static final Point ZERO = new Point(Double3.ZERO)
+    public static final Point ZERO = new Point(Double3.ZERO);
 
     public Point(double x, double y, double z) {
         this.xyz = new Double3(x, y, z);

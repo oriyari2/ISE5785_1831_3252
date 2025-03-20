@@ -20,6 +20,7 @@ public record Double3(double d1, double d2, double d3) {
     /** One's triad (1,1,1) */
     public static final Double3 ONE = new Double3(1, 1, 1);
 
+
     /**
      * Constructor to initialize Double3 based object the same number values
      * @param value number value for all 3 numbers

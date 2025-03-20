@@ -12,9 +12,9 @@ public final class Ray {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Ray)) return false;
-        Ray other = (Ray) obj;
-        return head.equals(other.head) && direction.equals(other.direction);
+        return (obj instanceof Ray other)
+                && this.head.equals(other.head)
+                && this.direction.equals(other.direction);
     }
 
     @Override
