@@ -7,10 +7,13 @@ import static primitives.Util.isZero;
 import primitives.*;
 
 /**
- * Test program for the 1st stage
- * @author Dan Zilberstein
+ * Main class for running the initial tests for the geometric shapes and operations.
+ * <p>
+ * This class contains the main method that runs various tests to verify the functionality
+ * of point and vector operations, as well as their interactions with geometric shapes.
  */
 public final class Main {
+
     /** A point for tests at (1,2,3) */
     private static final Point  P1          = new Point(1, 2, 3);
     /** A point for tests at (2,4,6) */
