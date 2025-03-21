@@ -1,7 +1,7 @@
 package primitives;
 
 /**
- * Represents a three-dimensional vector in 3D space.
+ * Represents a three-dimensional vector in 3D space
  * A vector extends {@link Point} but cannot be the zero vector (0,0,0).
  */
 public class Vector extends Point {
