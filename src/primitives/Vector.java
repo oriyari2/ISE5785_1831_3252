@@ -112,7 +112,6 @@ public class Vector extends Point {
      */
     public Vector normalize() {
         double length = length();
-        if (length == 0) throw new ArithmeticException("Cannot normalize zero vector");
         return scale(1 / length);
     }
 }

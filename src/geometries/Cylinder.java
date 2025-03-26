@@ -38,7 +38,8 @@ public class Cylinder extends Tube {
 
     @Override
     public Vector getNormal(Point point) {
-        return null; // TODO: Implement normal calculation logic
+        // TODO: Implement normal calculation logic
+        return null;
     }
 }
 
