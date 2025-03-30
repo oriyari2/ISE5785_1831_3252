@@ -11,7 +11,7 @@ class PointTest {
     /**
      * DELTA for test precision
      */
-    final static private double delta = 0.0001;
+    final static private double DELTA = 0.0001;
 
     /**
      * Points for testing
@@ -61,14 +61,15 @@ class PointTest {
     void testDistance() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Test that the distance between point1 and point3 is correct
-        assertEquals(3, p1.distance(p3), delta, "ERROR: distance between points is wrong");
+        assertEquals(3, p1.distance(p3), DELTA, "ERROR: distance between points is wrong");
 
         // Test that the distance between point3 and point1 is correct
-        assertEquals(3, p3.distance(p1), delta, "ERROR: distance between points is wrong");
+        assertEquals(3, p3.distance(p1), DELTA, "ERROR: distance between points is wrong");
 
         // =============== Boundary Values Tests ==================
         // TC11: Test that the distance from a point to itself is zero
-        assertEquals(0, p1.distance(p1), delta, "ERROR: point distance to itself is not zero");
+        assertEquals(0, p1.distance(p1), DELTA,
+                "ERROR: point distance to itself is not zero");
     }
 
     /**
@@ -78,16 +79,16 @@ class PointTest {
     void testDistanceSquared() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Test that the squared distance between point1 and point3 is correct
-        assertEquals(9, p1.distanceSquared(p3), delta,
+        assertEquals(9, p1.distanceSquared(p3), DELTA,
                 "ERROR: distanceSquared() between points is wrong");
 
         // Test that the squared distance between point3 and point1 is correct
-        assertEquals(9, p3.distanceSquared(p1), delta,
+        assertEquals(9, p3.distanceSquared(p1), DELTA,
                 "ERROR: distanceSquared() between points is wrong");
 
         // =============== Boundary Values Tests ==================
         // TC11: Test that the squared distance from a point to itself is zero
-        assertEquals(0, p1.distanceSquared(p1), delta,
+        assertEquals(0, p1.distanceSquared(p1), DELTA,
                 "ERROR: point distanceSquared() to itself is not zero");
     }
 }

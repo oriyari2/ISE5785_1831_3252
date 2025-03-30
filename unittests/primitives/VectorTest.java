@@ -11,7 +11,7 @@ class VectorTest {
     /**
      * DELTA for test precision
      */
-    final static private double delta = 0.0001;
+    final static private double DELTA = 0.0001;
 
     /**
      * Vectors for testing
@@ -23,6 +23,34 @@ class VectorTest {
     final static private Vector v4 = new Vector(1, 0, 0);
 
     /**
+     * Test method for {@link primitives.Vector#Vector(double, double, double)}.
+     */
+    @Test
+    void testConstructorWithCoordinates() {
+        // ============ Equivalence Partitions Tests ==============
+        // TC01: Ensure correct vector creation
+        assertDoesNotThrow(() -> new Vector(1, 2, 3), "Failed to create a valid vector");
+
+        // =============== Boundary Values Tests ==================
+        // TC11: Creating a zero vector should throw an exception
+        assertThrows(IllegalArgumentException.class, () -> new Vector(0, 0, 0),
+                "Creating zero vector should throw an exception");
+    }
+
+    /**
+     * Test method for {@link primitives.Vector#Vector(Double3)}.
+     */
+    @Test
+    void testConstructorWithDouble3() {
+        // ============ Equivalence Partitions Tests ==============
+        // TC01: Ensure correct vector creation
+        assertDoesNotThrow(() -> new Vector(new Double3(1, 2, 3)), "Failed to create a valid vector");
+
+        // =============== Boundary Values Tests ==================
+        // TC11: Creating a zero vector should throw an exception
+        assertThrows(IllegalArgumentException.class, () -> new Vector(Double3.ZERO), "Creating zero vector should throw an exception");
+    }
+    /**
      * Test method for {@link primitives.Vector#lengthSquared()}.
      */
     @Test
@@ -31,8 +59,21 @@ class VectorTest {
         // TC01: Ensure correct squared length calculation
         assertEquals(14,
                 v1.lengthSquared(),
-                delta,
+                DELTA,
                 "lengthSquared() incorrect value"
+        );
+    }
+    /**
+     * Test method for {@link primitives.Vector#length()}.
+     */
+    @Test
+    void testLength() {
+        // ============ Equivalence Partitions Tests ==============
+        // TC01: Ensure correct squared length calculation
+        assertEquals( 1,
+                v4.length(),
+                DELTA,
+                "length() incorrect value"
         );
     }
 
@@ -87,11 +128,11 @@ class VectorTest {
     void testDotProduct() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct dot product calculation
-        assertEquals(-28, v1.dotProduct(v2), delta, "Dot product incorrect");
+        assertEquals(-28, v1.dotProduct(v2), DELTA, "Dot product incorrect");
 
         // =============== Boundary Values Tests ==================
         // TC11: Dot product of orthogonal vectors should be zero
-        assertEquals(0, v1.dotProduct(v3), delta,
+        assertEquals(0, v1.dotProduct(v3), DELTA,
                 "Dot product should be zero for orthogonal vectors");
     }
 
@@ -104,7 +145,7 @@ class VectorTest {
 
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct cross product calculation
-        assertEquals(vector.length(), v1.length() * v3.length(), delta,
+        assertEquals(vector.length(), v1.length() * v3.length(), DELTA,
                 "Cross product length incorrect");
         assertEquals(0, vector.dotProduct(v1),
                 "Cross product should be orthogonal to first operand");
@@ -126,6 +167,7 @@ class VectorTest {
 
         // ============ Equivalence Partitions Tests ==============
         // TC01: Normalized vector should have unit length
-        assertEquals(1, unitVector.length(), delta, "Normalized vector should be unit length");
+        assertEquals(1, unitVector.length(), DELTA,
+                "Normalized vector should be unit length");
     }
 }
