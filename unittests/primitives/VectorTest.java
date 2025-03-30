@@ -1,6 +1,7 @@
 package primitives;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for primitives.Vector class
@@ -10,7 +11,7 @@ class VectorTest {
     /**
      * DELTA for test precision
      */
-    final static private double DELTA = 0.0001;
+    final static private double delta = 0.0001;
 
     /**
      * Vectors for testing
@@ -24,13 +25,13 @@ class VectorTest {
     /**
      * Test method for {@link primitives.Vector#lengthSquared()}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testLengthSquared() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct squared length calculation
         assertEquals(14,
                 v1.lengthSquared(),
-                DELTA,
+                delta,
                 "lengthSquared() incorrect value"
         );
     }
@@ -38,7 +39,7 @@ class VectorTest {
     /**
      * Test method for {@link primitives.Vector#add(primitives.Vector)}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testAddVector() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct vector addition
@@ -60,7 +61,7 @@ class VectorTest {
     /**
      * Test method for {@link primitives.Vector#scale(double)}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testScale() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct vector scaling
@@ -82,28 +83,28 @@ class VectorTest {
     /**
      * Test method for {@link primitives.Vector#dotProduct(primitives.Vector)}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testDotProduct() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct dot product calculation
-        assertEquals(-28, v1.dotProduct(v2), DELTA, "Dot product incorrect");
+        assertEquals(-28, v1.dotProduct(v2), delta, "Dot product incorrect");
 
         // =============== Boundary Values Tests ==================
         // TC11: Dot product of orthogonal vectors should be zero
-        assertEquals(0, v1.dotProduct(v3), DELTA,
+        assertEquals(0, v1.dotProduct(v3), delta,
                 "Dot product should be zero for orthogonal vectors");
     }
 
     /**
      * Test method for {@link primitives.Vector#crossProduct(primitives.Vector)}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testCrossProduct() {
         Vector vector = v1.crossProduct(v3);
 
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ensure correct cross product calculation
-        assertEquals(vector.length(), v1.length() * v3.length(), DELTA,
+        assertEquals(vector.length(), v1.length() * v3.length(), delta,
                 "Cross product length incorrect");
         assertEquals(0, vector.dotProduct(v1),
                 "Cross product should be orthogonal to first operand");
@@ -119,12 +120,12 @@ class VectorTest {
     /**
      * Test method for {@link primitives.Vector#normalize()}.
      */
-    @org.junit.jupiter.api.Test
+    @Test
     void testNormalize() {
         Vector unitVector = v1.normalize();
 
         // ============ Equivalence Partitions Tests ==============
         // TC01: Normalized vector should have unit length
-        assertEquals(1, unitVector.length(), DELTA, "Normalized vector should be unit length");
+        assertEquals(1, unitVector.length(), delta, "Normalized vector should be unit length");
     }
 }
