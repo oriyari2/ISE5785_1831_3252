@@ -1,45 +1,47 @@
+// Cylinder.java
 package geometries;
 
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
-/**
- * Represents a cylinder in 3D space, which extends a {@link Tube}.
- * A cylinder has a defined height in addition to the properties of a tube.
- */
 public class Cylinder extends Tube {
+    private static final double DELTA = 0.000001;
 
-    /**
-     * Represents the height of the cylinder.
-     */
-    private final double height;
+    private double height;
 
-    /**
-     * Constructs a cylinder with a given axis, radius, and height.
-     *
-     * @param axis   The central axis of the cylinder as a {@link Ray}
-     * @param radius The radius of the cylinder
-     * @param height The height of the cylinder
-     */
-    public Cylinder(Ray axis, double radius, double height) {
-        super(axis, radius);
+    public Cylinder(Ray axisRay, double radius, double height) {
+        super(axisRay, radius);
         this.height = height;
-    }
-
-    /**
-     * Returns the height of the cylinder.
-     *
-     * @return The height of the cylinder
-     */
-    public double getHeight() {
-        return height;
     }
 
     @Override
     public Vector getNormal(Point point) {
-        // TODO: Implement normal calculation logic
-        return null;
+        Point p0 = axis.getHead();
+        Vector dir = axis.getDirection();
+
+        // Calculate the projection of the point on the axis
+        double t = point.subtract(p0).dotProduct(dir);
+
+        // Check if the point is on the top base
+        if (Math.abs(t - height) < DELTA) {
+            return dir;
+        }
+
+        // Check if the point is on the bottom base
+        if (Math.abs(t) < DELTA) {
+            return dir.scale(-1);
+        }
+
+        // Otherwise, the point is on the side surface
+        Point o = p0.add(dir.scale(t));
+
+        // Avoid zero vector case
+        Vector normal = point.subtract(o);
+        if (normal.lengthSquared() < DELTA) {
+            throw new IllegalArgumentException("Normal calculation resulted in zero vector");
+        }
+
+        return normal.normalize();
     }
 }
-

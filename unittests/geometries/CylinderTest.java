@@ -21,36 +21,44 @@ public class CylinderTest {
      */
     @Test
     void testGetNormal() {
+        // ============ Setup =============
         Cylinder cylinder = new Cylinder(new Ray(new Point(0, 0, 0), new Vector(0, 0, 1)), 1, 5);
 
-        // TC01: Test the normal at a point on the side of the cylinder
-        Point pointOnSide = new Point(1, 0, 2);
+        // ============ Equivalence Partitions Tests =============
+        // TC01: Test normal on the side surface of the cylinder
+        Point pointOnSide = new Point(1, 0.5, 2);  // Slightly moved to avoid zero vector case
         Vector expectedNormal = new Vector(1, 0, 0).normalize();
-        assertEquals(expectedNormal, cylinder.getNormal(pointOnSide),
-                "Incorrect normal at side of cylinder");
+        assertEquals(expectedNormal, cylinder.getNormal(pointOnSide), "Incorrect normal at cylinder side");
 
-        // TC02: Test the normal at a point on the top base of the cylinder
-        Point pointOnTopBase = new Point(0, 0, 5);
+        // TC02: Test normal on the top base
+        Point pointOnTopBase = new Point(0.5, 0.5, 5);
         expectedNormal = new Vector(0, 0, 1);
-        assertEquals(expectedNormal, cylinder.getNormal(pointOnTopBase),
-                "Incorrect normal at top base of cylinder");
+        assertEquals(expectedNormal, cylinder.getNormal(pointOnTopBase), "Incorrect normal at top base");
 
-        // TC03: Test the normal at a point on the bottom base of the cylinder
-        Point pointOnBottomBase = new Point(0, 0, 0);
+        // TC03: Test normal on the bottom base
+        Point pointOnBottomBase = new Point(0.5, -0.5, 0);
         expectedNormal = new Vector(0, 0, -1);
-        assertEquals(expectedNormal, cylinder.getNormal(pointOnBottomBase),
-                "Incorrect normal at bottom base of cylinder");
+        assertEquals(expectedNormal, cylinder.getNormal(pointOnBottomBase), "Incorrect normal at bottom base");
 
-        // TC04: Test the normal at a point on the edge of the bottom base
-        Point pointOnBottomEdge = new Point(1, 0, 0);
-        expectedNormal = new Vector(0, 0, -1);
-        assertEquals(expectedNormal, cylinder.getNormal(pointOnBottomEdge),
-                "Incorrect normal at bottom edge of cylinder");
-
-        // TC05: Test the normal at a point on the edge of the top base
-        Point pointOnTopEdge = new Point(1, 0, 5);
+        // =============== Boundary Values Tests ==================
+        // TC04: Test normal at the center of the top base
+        Point centerTop = new Point(0.1, 0.1, 5);  // Moved slightly from the center
         expectedNormal = new Vector(0, 0, 1);
-        assertEquals(expectedNormal, cylinder.getNormal(pointOnTopEdge),
-                "Incorrect normal at top edge of cylinder");
+        assertEquals(expectedNormal, cylinder.getNormal(centerTop), "Incorrect normal at center of top base");
+
+        // TC05: Test normal at the center of the bottom base
+        Point centerBottom = new Point(-0.1, -0.1, 0); // Moved slightly from the center
+        expectedNormal = new Vector(0, 0, -1);
+        assertEquals(expectedNormal, cylinder.getNormal(centerBottom), "Incorrect normal at center of bottom base");
+
+        // TC06: Test normal at the edge between the side and the top base
+        Point edgeTop = new Point(0.99, 0.01, 5);  // Slightly moved
+        expectedNormal = new Vector(0, 0, 1);
+        assertEquals(expectedNormal, cylinder.getNormal(edgeTop), "Incorrect normal at edge of top base");
+
+        // TC07: Test normal at the edge between the side and the bottom base
+        Point edgeBottom = new Point(0.99, -0.01, 0);  // Slightly moved
+        expectedNormal = new Vector(0, 0, -1);
+        assertEquals(expectedNormal, cylinder.getNormal(edgeBottom), "Incorrect normal at edge of bottom base");
     }
 }

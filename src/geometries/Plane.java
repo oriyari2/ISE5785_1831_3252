@@ -40,8 +40,8 @@ public class Plane {
      */
     public Plane(Point q1, Point q2, Point q3) {
         this.q = q1;
-        Vector vec1 = q1.subtract(q2);
-        Vector vec2 = q1.subtract(q3);
+        Vector vec1 = q2.subtract(q1);
+        Vector vec2 = q3.subtract(q1);
         normal = vec1.crossProduct(vec2).normalize();
     }
 

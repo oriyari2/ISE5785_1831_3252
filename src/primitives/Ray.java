@@ -34,5 +34,13 @@ public final class Ray {
     public String toString() {
         return "Ray [head=" + head + ", direction=" + direction + "]";
     }
+
+    public Point getHead() {
+        return head;
+    }
+    public Vector getDirection() {
+        return direction;
+    }
+
 }
 

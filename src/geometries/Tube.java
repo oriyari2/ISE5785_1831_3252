@@ -28,6 +28,18 @@ public class Tube extends RadialGeometry {
 
     @Override
     public Vector getNormal(Point point) {
-        return null;  // Placeholder implementation, needs actual logic
+        // שלב 1: חישוב הווקטור בין הנקודה על המעטפת לבין הציר
+        Vector toPoint = point.subtract(axis.getHead());  // וקטור מהמרכז לנקודה על המעטפת
+
+        // שלב 2: חישוב הווקטור המפריד את רכיב הציר
+        double t = toPoint.dotProduct(axis.getDirection());  // חישוב רכיב הציר
+        Vector projection = axis.getDirection().scale(t);    // פרוקציה של הווקטור על הציר
+
+        // שלב 3: חישוב הווקטור הנורמלי על ידי חיסור
+        Vector normal = toPoint.subtract(projection);  // חישוב הווקטור הנורמלי
+
+        // שלב 4: נורמליזציה
+        return normal.normalize();
     }
+
 }

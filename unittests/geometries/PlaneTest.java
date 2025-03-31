@@ -108,7 +108,7 @@ public class PlaneTest {
      */
     @Test
     void testCtorPointNormal() {
-        Vector normal = new Vector(1, -1, 1).normalize();
+        Vector normal = vec1.crossProduct(vec2).normalize();
         Plane plane = new Plane(p1, normal);
         validatePlaneConstructor(plane, vec1, vec2);
     }
