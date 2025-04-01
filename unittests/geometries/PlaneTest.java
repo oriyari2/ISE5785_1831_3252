@@ -6,7 +6,7 @@ import primitives.Point;
 import primitives.Vector;
 
 /**
- * Testing Plane
+ * Unit tests for Plane class.
  */
 public class PlaneTest {
 
@@ -48,9 +48,10 @@ public class PlaneTest {
     }
 
     /**
-     * Helper method to test normal vector validity
-     *============ Equivalence Partitions Tests ==============
-     */    private void validateNormal(Vector normal) {
+     * Validates the normal vector.
+     * @param normal the normal vector to validate
+     */
+    private void validateNormal(Vector normal) {
         // Ensure normal is orthogonal to the plane's vectors
         assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
         assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
@@ -60,8 +61,10 @@ public class PlaneTest {
     }
 
     /**
-     * Helper method to test plane constructor validity
-     *============ Equivalence Partitions Tests ==============
+     * Validates the plane constructor.
+     * @param plane the plane to validate
+     * @param vec1 the first vector
+     * @param vec2 the second vector
      */
     private void validatePlaneConstructor(Plane plane, Vector vec1, Vector vec2) {
         Vector normal = plane.getNormal();

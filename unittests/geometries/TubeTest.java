@@ -26,5 +26,16 @@ class TubeTest {
 
         // Check if the normal is correctly directed
         assertEquals(new Vector(1, 0, 0), normal, "Wrong normal to tube");
+
+        // =============== Boundary Values Tests ==================
+        // TC11: Test the normal at a point directly above the ray's head (not creating zero vector)
+        Point boundaryPoint = new Point(1, 0, 0.000001); // Slightly offset to avoid zero vector
+        Vector boundaryNormal = tube.getNormal(boundaryPoint);
+
+        // Check if the normal is of unit length
+        assertEquals(1, boundaryNormal.length(), DELTA, "Boundary normal vector is not normalized");
+
+        // Check if the normal is correctly directed
+        assertEquals(new Vector(1, 0, 0), boundaryNormal, "Wrong boundary normal to tube");
     }
 }

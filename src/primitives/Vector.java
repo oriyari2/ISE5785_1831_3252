@@ -27,8 +27,9 @@ public class Vector extends Point {
      */
     public Vector(Double3 xyz) {
         super(xyz);
-        if (super.xyz.equals(Double3.ZERO))
+        if (super.xyz.equals(Double3.ZERO)) {
             throw new IllegalArgumentException("We can't create zero vector");
+        }
     }
 
     @Override
