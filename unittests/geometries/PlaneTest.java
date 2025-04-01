@@ -33,13 +33,8 @@ public class PlaneTest {
     @Test
     void testGetNormal() {
         Vector normal = plane.getNormal();
-
-        // TC01: Ensure normal is orthogonal to the plane's vectors
-        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
-        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
-
-        // TC02: Ensure normal is a unit vector
-        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
+        // ============ Equivalence Partitions Tests ==============
+        validateNormal(normal);
     }
 
     /**
@@ -48,17 +43,25 @@ public class PlaneTest {
     @Test
     void testGetNormalWithPoint() {
         Vector normal = plane.getNormal(p1);
+        // ============ Equivalence Partitions Tests ==============
+        validateNormal(normal);
+    }
+
+    /**
+     * Helper method to test normal vector validity
+     *============ Equivalence Partitions Tests ==============
+     */    private void validateNormal(Vector normal) {
+        // Ensure normal is orthogonal to the plane's vectors
+        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
+        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
 
         // Ensure normal is a unit vector
         assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
-
-        // Ensure normal is orthogonal to vectors
-        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
-        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
     }
 
     /**
      * Helper method to test plane constructor validity
+     *============ Equivalence Partitions Tests ==============
      */
     private void validatePlaneConstructor(Plane plane, Vector vec1, Vector vec2) {
         Vector normal = plane.getNormal();
@@ -73,6 +76,8 @@ public class PlaneTest {
     @Test
     void testCtorThreePoints() {
         Plane plane = new Plane(p1, p2, p3);
+
+        // ============ Equivalence Partitions Tests ==============
         validatePlaneConstructor(plane, vec1, vec2);
 
         // Ensure cross product length is different from 1

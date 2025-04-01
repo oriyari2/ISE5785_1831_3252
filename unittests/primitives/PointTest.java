@@ -47,11 +47,7 @@ class PointTest {
 
         // =============== Boundary Values Tests ==================
         // TC11: Test that subtracting a point from itself throws an exception.
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> p1.subtract(p1),
-                "ERROR: (point - itself) does not throw an exception"
-        );
+        assertThrows( IllegalArgumentException.class, () -> p1.subtract(p1), "ERROR: (point - itself) does not throw an exception");
     }
 
     /**
