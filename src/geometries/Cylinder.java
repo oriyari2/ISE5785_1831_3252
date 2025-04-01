@@ -16,6 +16,18 @@ public class Cylinder extends Tube {
     }
 
     @Override
+    /**
+     * Calculate the normal vector to the cylinder at a given point.
+     * The point is assumed to be on the cylinder surface.
+     * The method handles three cases:
+     * 1. Point on the curved surface (side)
+     * 2. Point on the first base
+     * 3. Point on the second base
+     * And handles boundary cases where points are at centers or edges.
+     *
+     * @param point A point on the cylinder surface
+     * @return The normalized normal vector at the given point
+     */
     public Vector getNormal(Point point) {
         Point p0 = axis.getHead();
         Vector dir = axis.getDirection();
@@ -35,13 +47,6 @@ public class Cylinder extends Tube {
 
         // Otherwise, the point is on the side surface
         Point o = p0.add(dir.scale(t));
-
-        // Avoid zero vector case
-        Vector normal = point.subtract(o);
-        if (normal.lengthSquared() < DELTA) {
-            throw new IllegalArgumentException("Normal calculation resulted in zero vector");
-        }
-
-        return normal.normalize();
+        return point.subtract(o).normalize();
     }
-}
+    }
