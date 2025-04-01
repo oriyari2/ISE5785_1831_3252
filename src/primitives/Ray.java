@@ -1,7 +1,7 @@
 package primitives;
 
 /**
- * Represents a ray in 3D space, defined by a starting point (head) and a normalized direction vector.
+ * Ray class represents a ray in 3D space.
  */
 public final class Ray {
     /** The starting point of the ray */
@@ -11,11 +11,9 @@ public final class Ray {
     private final Vector direction;
 
     /**
-     * Constructs a ray with a given starting point and direction.
-     * The direction vector is automatically normalized.
-     *
-     * @param head The starting point of the ray
-     * @param direction The direction vector (will be normalized)
+     * Constructor to initialize Ray with head point and direction vector.
+     * @param head the head point of the ray
+     * @param direction the direction vector of the ray
      */
     public Ray(Point head, Vector direction) {
         this.head = head;
@@ -35,12 +33,27 @@ public final class Ray {
         return "Ray [head=" + head + ", direction=" + direction + "]";
     }
 
+    /**
+     * Gets the head point of the ray.
+     * @return the head point
+     */
     public Point getHead() {
         return head;
     }
+    /**
+     * Gets the direction vector of the ray.
+     * @return the direction vector
+     */
     public Vector getDirection() {
         return direction;
     }
-
+    /**
+     * Gets a point on the ray at a distance t from the head.
+     * @param t the distance from the head
+     * @return the point on the ray
+     */
+    public Point getPoint(double t) {
+        return head;
+    }
 }
 

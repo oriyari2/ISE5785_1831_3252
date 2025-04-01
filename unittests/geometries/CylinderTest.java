@@ -10,7 +10,7 @@ import primitives.Ray;
 import primitives.Vector;
 
 /**
- * Testing Cylinder
+ * Unit tests for Cylinder class.
  */
 class CylinderTest {
 
@@ -18,7 +18,7 @@ class CylinderTest {
      * Test method for {@link geometries.Cylinder#getNormal(primitives.Point)}.
      */
     @Test
-    void getNormal() {
+    void testGetNormal() {
         Cylinder cyl = new Cylinder(new Ray(new Point(0, 0, 0), new Vector(0, 0, 1)), 5, 5);
         // ============ Equivalence Partitions Tests ==============
         // TC01: point is on the side (like in tube): Test that the result of the normal vector of the point is proper

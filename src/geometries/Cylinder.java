@@ -4,11 +4,22 @@ package geometries;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
-
+/**
+ * Cylinder class represents a cylinder in 3D space.
+ */
 public class Cylinder extends Tube {
+    /** Small value for precision comparisons */
     private static final double DELTA = 0.000001;
-
+    /** Height of the cylinder */
     private double height;
+
+
+    /**
+     * Constructor to initialize Cylinder with axis ray, radius, and height.
+     * @param axisRay the axis ray of the cylinder
+     * @param radius the radius of the cylinder
+     * @param height the height of the cylinder
+     */
 
     public Cylinder(Ray axisRay, double radius, double height) {
         super(axisRay, radius);

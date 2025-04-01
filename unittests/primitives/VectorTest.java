@@ -3,8 +3,9 @@ package primitives;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+
 /**
- * Unit test for primitives.Vector class
+ * Unit tests for Vector class.
  */
 class VectorTest {
 
@@ -152,7 +153,9 @@ class VectorTest {
         // TC01: Normalized vector should have unit length
         assertEquals(1, unitVector.length(), DELTA, "Normalized vector should be unit length");
     }
-
+    /**
+     * Test method for {@link primitives.Vector#subtract(primitives.Vector)}.
+     */
     @Test
     void testSubstruct() {
         // ============ Equivalence Partitions Tests ==============
