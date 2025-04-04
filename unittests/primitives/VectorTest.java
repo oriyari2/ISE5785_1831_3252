@@ -154,7 +154,7 @@ class VectorTest {
         assertEquals(1, unitVector.length(), DELTA, "Normalized vector should be unit length");
     }
     /**
-     * Test method for {@link primitives.Vector#subtract(primitives.Vector)}.
+     * Test method for {@link primitives.Vector# subtract(primitives.Vector)}.
      */
     @Test
     void testSubstruct() {

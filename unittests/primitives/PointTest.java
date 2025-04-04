@@ -19,7 +19,7 @@ class PointTest {
     final static private Point p1 = new Point(1, 2, 3);
     final static private Point p2 = new Point(2, 3, 4);
     final static private Point p3 = new Point(2, 4, 5);
-
+    //TODO: add one point to check change distance
     /**
      * Vector for testing
      */

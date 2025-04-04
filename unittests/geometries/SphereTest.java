@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test method for {@link geometries.Sphere#getNormal(primitives.Point)}.
  */
 class SphereTest {
-
+    //TODO: add more tests for the Sphere class
     /**
      * Test method for {@link geometries.Sphere#getNormal(primitives.Point)}.
      */

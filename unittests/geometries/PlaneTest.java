@@ -10,6 +10,7 @@ import primitives.Vector;
  */
 public class PlaneTest {
 
+    //TODO: union the function and not to use another function for the same purpose
     /**
      * DELTA for test precision
      */
@@ -28,11 +29,11 @@ public class PlaneTest {
     private final Plane plane = new Plane(p1, p2, p3); // Creating the plane using points
 
     /**
-     * Test method for {@link Plane#getNormal()}.
+     * Test method for {@link Plane# getNormal()}.
      */
     @Test
     void testGetNormal() {
-        Vector normal = plane.getNormal();
+        Vector normal = plane.getNormal(p1);
         // ============ Equivalence Partitions Tests ==============
         validateNormal(normal);
     }

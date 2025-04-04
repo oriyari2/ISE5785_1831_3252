@@ -43,11 +43,6 @@ public class Plane {
         Vector vec1 = q2.subtract(q1);
         Vector vec2 = q3.subtract(q1);
         Vector cross = vec1.crossProduct(vec2);
-
-        if (cross.length() == 0) {
-            throw new IllegalArgumentException("The three points must not be collinear");
-        }
-
         this.normal = cross.normalize();
     }
 
@@ -63,14 +58,5 @@ public class Plane {
         return normal;
     }
 
-    /**
-     * Returns the normal vector of the plane.
-     * This method does not require any point, as the normal is constant for the entire plane.
-     *
-     * @return The normal vector of the plane
-     */
-    public Vector getNormal() {
-        return normal;
-    }
 }
 
