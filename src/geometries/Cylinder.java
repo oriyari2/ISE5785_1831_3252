@@ -1,9 +1,12 @@
 // Cylinder.java
 package geometries;
-
+import primitives.Util;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+
+import java.util.List;
+
 /**
  * Cylinder class represents a cylinder in 3D space.
  */
@@ -43,22 +46,23 @@ public class Cylinder extends Tube {
         Point p0 = axis.getHead();
         Vector dir = axis.getDirection();
 
-        // Calculate the projection of the point on the axis
-        double t = point.subtract(p0).dotProduct(dir);
+        // Vector from base to point
+        Vector fromBase = point.subtract(p0);
+        double t = Util.alignZero(fromBase.dotProduct(dir));
 
-        // Check if the point is on the top base
-        if (Math.abs(t - height) < DELTA) {
-            return dir;
-        }
-
-        // Check if the point is on the bottom base
-        if (Math.abs(t) < DELTA) {
+        // On bottom base
+        if (Util.alignZero(t) == 0)
             return dir.scale(-1);
-        }
 
-        // Otherwise, the point is on the side surface
-        Point o = p0.add(dir.scale(t));
-        return point.subtract(o).normalize();
-        //TODO: fix the normal from the tube
+        // On top base
+        if (Util.alignZero(t - height) == 0)
+            return dir;
+
+        // On side surface (delegate to Tube)
+        return super.getNormal(point);
+    }
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
     }
     }

@@ -1,6 +1,4 @@
 package geometries;
-
-import static java.lang.Double.*;
 import java.util.List;
 import static primitives.Util.*;
 import primitives.*;
@@ -10,13 +8,13 @@ import primitives.*;
  * system.
  * @author Dan
  */
-public class Polygon extends Geometry {
+public class Polygon implements Geometry {
     /** List of polygon's vertices */
     protected final List<Point> vertices;
     /** Associated plane in which the polygon lays */
     protected final Plane       plane;
     /** The size of the polygon - the amount of the vertices in the polygon */
-    private final int           size;
+    private final int size;
 
     /**
      * Polygon constructor based on vertices list. The list must be ordered by edge
@@ -80,4 +78,8 @@ public class Polygon extends Geometry {
     @Override
     public Vector getNormal(Point point) { return plane.getNormal(point); }
 
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
+    }
 }

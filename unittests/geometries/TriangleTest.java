@@ -27,4 +27,7 @@ class TriangleTest {
         assertEquals(1, triangle.getNormal(new Point(0, 1, 1)).length(), 1e-10,
                 "The normal vector isn't normalized");
     }
+    @Test
+    void testFindIntersections() {
+    }
 }

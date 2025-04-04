@@ -1,7 +1,10 @@
 package geometries;
 
 import primitives.Point;
+import primitives.Ray;
 import primitives.Vector;
+
+import java.util.List;
 
 /**
  * Represents a plane in 3D space defined by a point and a normal vector.
@@ -9,7 +12,7 @@ import primitives.Vector;
  * A plane can be defined either by a point and a normal vector, or by three points
  * on the plane. The normal vector is always normalized upon creation.
  */
-public class Plane {
+public class Plane implements Geometry {
     /**
      * The point Q that defines the plane.
      */
@@ -58,5 +61,13 @@ public class Plane {
         return normal;
     }
 
+    public Point getPoint() {
+        return q;
+    }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
+    }
 }
 

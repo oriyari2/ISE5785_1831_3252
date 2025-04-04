@@ -1,5 +1,4 @@
 package geometries;
-
 import primitives.Vector;
 import primitives.Point;
 
@@ -9,7 +8,7 @@ import primitives.Point;
  * This class serves as a base for all geometric shapes and ensures that
  * every shape has a method to compute the normal vector at a given point.
  */
-public abstract class Geometry {
+public interface Geometry extends Intersectable {
    /**
     * Computes the normal vector to the surface of the geometric shape at a given point.
     *

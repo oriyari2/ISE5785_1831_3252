@@ -1,8 +1,10 @@
 package geometries;
-
+import primitives.Util;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+
+import java.util.List;
 
 /**
  * Represents a tube geometry, which is a type of radial geometry
@@ -28,22 +30,16 @@ public class Tube extends RadialGeometry {
 
     @Override
     public Vector getNormal(Point point) {
-        // שלב 1: חישוב הווקטור בין הנקודה על המעטפת לבין הציר
-        Vector toPoint = point.subtract(axis.getHead());  // וקטור מהמרכז לנקודה על המעטפת
+        //calculate the projection of the point on the axis
+        double t = Util.alignZero(this.axis.getDirection().dotProduct(point.subtract(this.axis.getPoint(0d))));
 
-        // שלב 2: חישוב הווקטור המפריד את רכיב הציר
-        double t = toPoint.dotProduct(axis.getDirection());  // חישוב רכיב הציר
-        Vector projection = axis.getDirection().scale(t);    // פרוקציה של הווקטור על הציר
+        //find center of the tube
+        //return the normalized vector from the center of the tube to the point
+        return point.subtract(this.axis.getPoint(t)).normalize();
+        }
 
-        // שלב 3: חישוב הווקטור הנורמלי על ידי חיסור
-        Vector normal = toPoint.subtract(projection);  // חישוב הווקטור הנורמלי
-
-        // שלב 4: נורמליזציה
-        return normal.normalize();
-        //TODO: fix the description
-        //TODO: fix that the normal super from cylinder
-        //TODO: fix the names
-        //TODO: fix the method to be more efficient
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
     }
-
 }

@@ -58,4 +58,11 @@ class CylinderTest {
         assertEquals(new Vector(0, 0, -1), cyl.getNormal(new Point(0.1, 0.1, 0)),
                 "ERROR: Cylinder.getNormal() does not work correctly (center of bottom base)");
     }
+    /**
+     * Test method for {@link geometries.Cylinder#findIntersections(primitives.Ray)}.
+     * This test is currently empty and needs to be implemented.
+     */
+    @Test
+    void testFindIntersections() {
+    }
 }

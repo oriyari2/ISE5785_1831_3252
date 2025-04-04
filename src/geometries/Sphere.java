@@ -2,7 +2,10 @@ package geometries;
 
 import geometries.RadialGeometry;
 import primitives.Point;
+import primitives.Ray;
 import primitives.Vector;
+
+import java.util.List;
 
 /**
  * Represents a sphere geometry, which is a type of radial geometry
@@ -29,6 +32,11 @@ public class Sphere extends RadialGeometry {
     public Vector getNormal(Point point) {
         // The normal is the vector from the center to the point on the surface
         return point.subtract(center).normalize();
+    }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
     }
 }
 

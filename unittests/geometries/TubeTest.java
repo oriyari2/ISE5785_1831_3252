@@ -38,4 +38,10 @@ class TubeTest {
         // Check if the normal is correctly directed
         assertEquals(new Vector(1, 0, 0), boundaryNormal, "Wrong boundary normal to tube");
     }
+    /**
+     * Test method for {@link Tube#findIntersections(Ray)}.
+     */
+    @Test
+    void testFindIntersections() {
+    }
 }

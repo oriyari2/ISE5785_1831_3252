@@ -19,7 +19,7 @@ class PointTest {
     final static private Point p1 = new Point(1, 2, 3);
     final static private Point p2 = new Point(2, 3, 4);
     final static private Point p3 = new Point(2, 4, 5);
-    //TODO: add one point to check change distance
+    final static private Point p4 = new Point(5, 5, 3);
     /**
      * Vector for testing
      */
@@ -75,11 +75,11 @@ class PointTest {
     void testDistanceSquared() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Test that the squared distance between point1 and point3 is correct
-        assertEquals(9, p1.distanceSquared(p3), DELTA,
+        assertEquals(5, p1.distanceSquared(p4), DELTA,
                 "ERROR: distanceSquared() between points is wrong");
 
         // Test that the squared distance between point3 and point1 is correct
-        assertEquals(9, p3.distanceSquared(p1), DELTA,
+        assertEquals(5, p4.distanceSquared(p1), DELTA,
                 "ERROR: distanceSquared() between points is wrong");
 
         // =============== Boundary Values Tests ==================

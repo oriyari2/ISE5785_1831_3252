@@ -1,16 +1,17 @@
 package geometries;
 
+import java.util.List;
+
+
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
-import primitives.Point;
-import primitives.Vector;
+import primitives.*;
 
 /**
  * Unit tests for Plane class.
  */
 public class PlaneTest {
 
-    //TODO: union the function and not to use another function for the same purpose
     /**
      * DELTA for test precision
      */
@@ -35,24 +36,6 @@ public class PlaneTest {
     void testGetNormal() {
         Vector normal = plane.getNormal(p1);
         // ============ Equivalence Partitions Tests ==============
-        validateNormal(normal);
-    }
-
-    /**
-     * Test method for {@link Plane#getNormal(Point)}.
-     */
-    @Test
-    void testGetNormalWithPoint() {
-        Vector normal = plane.getNormal(p1);
-        // ============ Equivalence Partitions Tests ==============
-        validateNormal(normal);
-    }
-
-    /**
-     * Validates the normal vector.
-     * @param normal the normal vector to validate
-     */
-    private void validateNormal(Vector normal) {
         // Ensure normal is orthogonal to the plane's vectors
         assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
         assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
@@ -62,17 +45,27 @@ public class PlaneTest {
     }
 
     /**
+     * Test method for {@link Plane#getNormal(Point)}.
+     */
+    @Test
+    void testGetNormalWithPoint() {
+        Vector normal = plane.getNormal(p1);
+        // ============ Equivalence Partitions Tests ==============
+        // Ensure normal is orthogonal to the plane's vectors
+        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
+        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
+
+        // Ensure normal is a unit vector
+        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
+    }
+
+
+    /**
      * Validates the plane constructor.
      * @param plane the plane to validate
      * @param vec1 the first vector
      * @param vec2 the second vector
      */
-    private void validatePlaneConstructor(Plane plane, Vector vec1, Vector vec2) {
-        Vector normal = plane.getNormal();
-        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
-        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
-        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
-    }
 
     /**
      * Test method for {@link Plane#Plane(Point, Point, Point)} constructor.
@@ -82,7 +75,10 @@ public class PlaneTest {
         Plane plane = new Plane(p1, p2, p3);
 
         // ============ Equivalence Partitions Tests ==============
-        validatePlaneConstructor(plane, vec1, vec2);
+        Vector normal = plane.getNormal(p1);
+        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
+        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
+        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
 
         // Ensure cross product length is different from 1
         Vector crossProduct = vec1.crossProduct(vec2);
@@ -118,7 +114,66 @@ public class PlaneTest {
     @Test
     void testCtorPointNormal() {
         Vector normal = vec1.crossProduct(vec2).normalize();
-        Plane plane = new Plane(p1, normal);
-        validatePlaneConstructor(plane, vec1, vec2);
+        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
+        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
+        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
     }
+    /**
+     * Test method for {@link Plane# Plane(Vector, Vector)} constructor.
+     */
+    @Test
+    void testFindIntersections() {
+        // ============ Equivalence Partitions Tests ==============
+        // TC01: A ray1 that is not parallel or perpendicular to a plane intersects the plane
+        Ray ray1 = new Ray(new Point (0,0, 0), vec1);
+        List <Point> intersection = plane.findIntersections(ray1);
+        assertEquals(1, intersection.size(), "Ray should intersect the plane at one point");
+
+        // TC02: Any ray1 that does not intersect the plane
+        Ray ray2 = new Ray(new Point (0,0, 0), new Vector (1,1,0));
+        List <Point> intersection2 = plane.findIntersections(ray2);
+        assertNull(intersection2, "Ray should not intersect the plane");
+
+        // =============== Boundary Values Tests ==================
+
+        //Beam parallel to the plane
+        // TC11: The beam is contained in a plane
+        Ray ray3 = new Ray(p1, vec1);
+        List <Point> intersection3 = plane.findIntersections(ray3);
+        assertNull(intersection3, "Ray should not intersect the plane");
+        // TC12: The ray is parallel to the plane and is not contained in it
+        Ray ray4 = new Ray(new Point (0,0, 1), new Vector (1,1,0));
+        List <Point> intersection4 = plane.findIntersections(ray4);
+        assertNull(intersection4, "Ray should not intersect the plane");
+
+        //Beam perpendicular to the plane
+        Vector normal = plane.getNormal(p1);
+        // TC13: The ray is perpendicular to the plane and starts before it
+        Ray ray5 = new Ray(new Point (0,0, -1), normal);
+        List <Point> intersection5 = plane.findIntersections(ray5);
+        assertEquals(1, intersection5.size(), "Ray should intersect the plane at one point");
+
+        // TC14: The beam is perpendicular to the plane and starts on it
+        Ray ray6 = new Ray(p1, normal);
+        List <Point> intersection6 = plane.findIntersections(ray6);
+        assertNull(intersection6, "Ray should not intersect the plane");
+
+
+        // TC15: The ray is perpendicular to the plane and starts after it
+        Ray ray7 = new Ray(new Point(0,0,10), normal.scale(-1));
+        List <Point> intersection7 = plane.findIntersections(ray7);
+        assertNull(intersection7, "Ray should not intersect the plane");
+
+        //Neither perpendicular nor parallel
+        // TC16: The ray begins at the same point as the plane represented by it
+        Ray ray8 = new Ray(plane.getPoint(), new Vector(1, 2, 3));
+        List <Point> intersection8 = plane.findIntersections(ray8);
+        assertNull(intersection8, "Ray should not intersect the plane");
+
+        // TC17: The foundation begins on the plain
+        Ray ray9 = new Ray(p1, new Vector(1, 2, 3));
+        List <Point> intersection9 = plane.findIntersections(ray9);
+        assertNull(intersection9, "Ray should not intersect the plane");
+    }
+
 }
