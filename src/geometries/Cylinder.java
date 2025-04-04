@@ -59,5 +59,6 @@ public class Cylinder extends Tube {
         // Otherwise, the point is on the side surface
         Point o = p0.add(dir.scale(t));
         return point.subtract(o).normalize();
+        //TODO: fix the normal from the tube
     }
     }

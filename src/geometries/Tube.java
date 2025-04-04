@@ -40,6 +40,10 @@ public class Tube extends RadialGeometry {
 
         // שלב 4: נורמליזציה
         return normal.normalize();
+        //TODO: fix the description
+        //TODO: fix that the normal super from cylinder
+        //TODO: fix the names
+        //TODO: fix the method to be more efficient
     }
 
 }
