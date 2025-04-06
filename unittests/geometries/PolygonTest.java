@@ -92,7 +92,7 @@ class PolygonTests {
         // TC01: There is a simple single test here - using a quad
         Point[] pts =
                 {new Point(0, 0, 1),
-                        new Point(1, 0, 0),
+                                new Point(1, 0, 0),
                         new Point(0, 1, 0),
                         new Point(-1, 1, 1)};
         Polygon pol = new Polygon(pts);
@@ -110,5 +110,42 @@ class PolygonTests {
 
     @Test
     void testFindIntersections() {
+        Polygon polygon = new Polygon(
+                new Point(1, 0, 0),
+                new Point(0, 2, 0),
+                new Point(-1, 1, 0),
+                new Point(-1, -1, 0)
+        );
+
+        // ============ Equivalence Partitions Tests ==============
+
+        // TC01: Ray intersects inside the polygon (1 point)
+        Ray ray1 = new Ray(new Point(0, 0, -1), new Vector(0, 0, 1));
+        List<Point> result1 = polygon.findIntersections(ray1);
+        assertEquals(1, result1.size(), "Ray should intersect the polygon");
+        assertEquals(new Point(0, 0, 0), result1.get(0), "Wrong intersection point");
+
+        // TC02: Ray intersects outside the polygon (0 points)
+        Ray ray2 = new Ray(new Point(2, 2, -1), new Vector(0, 0, 1));
+        assertNull(polygon.findIntersections(ray2), "Ray should not intersect the polygon");
+
+        // TC03: Ray is parallel and does not intersect (0 points)
+        Ray ray3 = new Ray(new Point(0, 0, 1), new Vector(1, 0, 0));
+        assertNull(polygon.findIntersections(ray3), "Ray should not intersect the polygon");
+
+        // =============== Boundary Values Tests ==================
+
+        // TC04: Ray hits exactly on the edge of the polygon (0 points)
+        Ray ray4 = new Ray(new Point(0.5, 1, -1), new Vector(0, 0, 1));
+        assertNull(polygon.findIntersections(ray4), "Ray on edge should not intersect");
+
+        // TC05: Ray hits exactly on a vertex of the polygon (0 points)
+        Ray ray5 = new Ray(new Point(1, 0, -1), new Vector(0, 0, 1));
+        assertNull(polygon.findIntersections(ray5), "Ray on vertex should not intersect");
+
+        // TC06: Ray continues the extension of an edge (0 points)
+        Ray ray6 = new Ray(new Point(2, -2, -1), new Vector(0, 0, 1));
+        assertNull(polygon.findIntersections(ray6), "Ray along edge extension should not intersect");
     }
+
 }
