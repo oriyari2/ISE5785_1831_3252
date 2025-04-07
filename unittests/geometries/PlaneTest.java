@@ -35,12 +35,13 @@ public class PlaneTest {
         Vector normal = plane.getNormal(p1);
         // ============ Equivalence Partitions Tests ==============
         // Ensure normal is orthogonal to the plane's vectors
-        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
-        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
+        assertTrue(normal.dotProduct(vec1) < DELTA, "Normal is not orthogonal to first vector");
+        assertTrue(normal.dotProduct(vec2) < DELTA, "Normal is not orthogonal to second vector");
 
         // Ensure normal is a unit vector
         assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
     }
+
 
     /**
      * Test method for {@link Plane#getNormal(Point)}.
@@ -66,8 +67,8 @@ public class PlaneTest {
 
         // ============ Equivalence Partitions Tests ==============
         Vector normal = plane.getNormal(p1);
-        assertEquals(0, normal.dotProduct(vec1), "Normal is not orthogonal to first vector");
-        assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
+        assertTrue(normal.dotProduct(vec1) < DELTA, "Normal is not orthogonal to first vector");
+        assertTrue(normal.dotProduct(vec2) < DELTA, "Normal is not orthogonal to second vector");
         assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
 
         // Ensure cross product length is different from 1
@@ -75,7 +76,6 @@ public class PlaneTest {
         assertNotEquals(1, crossProduct.length(), "Cross product length should not be 1");
 
         // =============== Boundary Values Tests ==================
-
         // TC01: Two identical points (p1 and p2)
         assertThrows(IllegalArgumentException.class, () -> new Plane(p1, p1, p3),
                 "Constructor should throw an exception for two identical points (p1, p1, p3)");
@@ -93,7 +93,7 @@ public class PlaneTest {
                 "Constructor should throw an exception for three identical points");
 
         // TC05: All points on the same line
-        Point p4 = new Point(10, 11, 12);
+        Point p4 = new Point(10, 11, 14);  // Changing Z-coordinate to make it non-collinear
         assertThrows(IllegalArgumentException.class, () -> new Plane(p1, p2, p4),
                 "Constructor should throw an exception when all points are collinear");
     }

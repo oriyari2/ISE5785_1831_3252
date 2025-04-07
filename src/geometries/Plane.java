@@ -78,33 +78,39 @@ public class Plane implements Geometry {
         Point p0 = ray.getHead();
         Vector v = ray.getDirection();
 
-        // If the ray starts exactly at the point on the plane → no intersection
-        if (q.equals(p0)) {
-            return null;
-        }
-
+        // Check if ray direction is parallel to the plane (perpendicular to normal)
         double nv = normal.dotProduct(v);
 
-        // Ray is parallel to the plane → no intersection
+        // If the ray is parallel to the plane (nv == 0)
         if (Util.isZero(nv)) {
-            return null;
+            return null; // No intersection, return null
         }
 
-        Vector qMinusP0 = q.subtract(p0);
+        // Check if the ray starts on the plane or the ray's head is on the plane
+        Vector qMinusP0;
+        try {
+            qMinusP0 = q.subtract(p0);
+        } catch (IllegalArgumentException e) {
+            return null; // The ray starts from the plane, return null
+        }
         double nQMinusP0 = normal.dotProduct(qMinusP0);
 
-        // Ray starts on the plane → no intersection
+        // If the ray starts on the plane
         if (Util.isZero(nQMinusP0)) {
-            return null;
+            return null; // The ray is in the plane or starts from the plane, return null
         }
 
+        // Calculate the intersection parameter t
         double t = nQMinusP0 / nv;
 
+        // If t <= 0, the intersection is behind the ray's head
         if (t <= 0) {
-            return null;
+            return null; // No intersection, return null
         }
 
-        return List.of(ray.getPoint(t));
-    }
+        // Calculate the intersection point
+        Point intersectionPoint = ray.getPoint(t);
 
+        return List.of(intersectionPoint);
+    }
 }
