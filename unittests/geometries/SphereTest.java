@@ -15,6 +15,11 @@ class SphereTest {
     /**
      * Test method for {@link geometries.Sphere#getNormal(primitives.Point)}.
      */
+
+    /**
+     * DELTA for test precision
+     */
+    private static final double DELTA = 0.000001;
     @Test
     void testGetNormal() {
         // ============ Equivalence Partitions Tests ==============
@@ -38,11 +43,11 @@ class SphereTest {
     private final Point p100 = new Point(1, 0, 0);
     /** A vector used in some tests */
     private final Vector v001 = new Vector(0, 0, 1);
-
-    /** A vector used in some tests */
+    /**
+     * Test method for {@link geometries.Sphere#findIntersections(primitives.Ray)}.
+     */
     @Test
-    void testFindIntersections() {
-
+    public void testFindIntersections() {
         Sphere sphere = new Sphere(1d, p100);
         final Point gp1 = new Point(0.0651530771650466, 0.355051025721682, 0);
         final Point gp2 = new Point(1.53484692283495, 0.844948974278318, 0);
@@ -50,7 +55,6 @@ class SphereTest {
         final Vector v310 = new Vector(3, 1, 0);
         final Vector v110 = new Vector(1, 1, 0);
         final Point p01 = new Point(-1, 0, 0);
-
         // ============ Equivalence Partitions Tests ==============
         // TC01: Ray's line is outside the sphere (0 points)
         assertNull(sphere.findIntersections(new Ray(p01, v110)), "Ray's line out of sphere");

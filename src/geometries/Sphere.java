@@ -1,11 +1,11 @@
 package geometries;
 
 import geometries.RadialGeometry;
-import primitives.Point;
-import primitives.Ray;
-import primitives.Vector;
+import primitives.*;
 
 import java.util.List;
+
+import static primitives.Util.alignZero;
 
 /**
  * Represents a sphere geometry, which is a type of radial geometry
@@ -36,6 +36,39 @@ public class Sphere extends RadialGeometry {
 
     @Override
     public List<Point> findIntersections(Ray ray) {
+        Vector v = ray.getDirection();
+        Point p0 = ray.getHead();
+
+        // The vector from the center of the sphere to the ray's head
+        if (p0.equals(center)) {
+            return List.of(ray.getPoint(radius));
+        }
+
+        Vector u = center.subtract(p0);
+        double tm = alignZero(v.dotProduct(u));
+        double d2 = alignZero(u.lengthSquared() - tm * tm);
+        double r2 = alignZero(radius * radius);
+
+        // No intersection if the distance from the ray to the center is greater than radius
+        if (alignZero(d2 - r2) > 0) {
+            return null;
+        }
+
+        double th = alignZero(Math.sqrt(r2 - d2));
+
+        if (alignZero(th) == 0) {
+            return null;
+        }
+
+        double t1 = alignZero(tm - th);
+        double t2 = alignZero(tm + th);
+
+        if (t1 <= 0 && t2 <= 0) return null;
+
+        if (t1 > 0 && t2 > 0) return List.of(ray.getPoint(t1), ray.getPoint(t2));
+        if (t1 > 0) return List.of(ray.getPoint(t1));
+        if (t2 > 0) return List.of(ray.getPoint(t2));
+
         return null;
     }
 }
