@@ -4,34 +4,47 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import primitives.*;
-import java.util.List;
+
 /**
  * Unit tests for {@link geometries.Triangle} class.
  */
 class TriangleTest {
     private static final double DELTA = 0.000001;
+
     Triangle triangle = new Triangle(new Point(1, 0, 0), new Point(0, 2, 0), new Point(0, 0, 3));
     Point p1 = new Point(0, 1, 1);
 
     /**
      * Test method for {@link geometries.Triangle#getNormal(Point)}.
      *
-     * This test verifies that the normal calculation of a Triangle is correct
-     * and properly normalized.
+     * Test that the normal to the triangle is calculated correctly.
+     * - Checks that the normal vector is orthogonal.
+     * - Checks that the normal vector is normalized.
      */
     @Test
     void testGetNormal() {
         // ============ Equivalence Partitions Tests ==============
-        // TC01: test to see that the getNormal function works correctly
+
+        // TC01: Check that the normal is orthogonal
         Vector expectedNormal = new Vector(6, 3, 2);
-        assertThrows(IllegalArgumentException.class,()->triangle.getNormal(p1).crossProduct(expectedNormal),
+        assertThrows(IllegalArgumentException.class, () ->
+                        triangle.getNormal(p1).crossProduct(expectedNormal),
                 "The normal vector is not in the right direction");
 
+        // TC02: Check that the normal is normalized
         assertEquals(1, triangle.getNormal(p1).length(), DELTA,
                 "The normal vector isn't normalized");
     }
 
-
+    /**
+     * Test method for {@link geometries.Triangle#findIntersections(Ray)}.
+     *
+     * Test ray-triangle intersections:
+     * - Ray intersects inside the triangle.
+     * - Ray outside the triangle (against edge or vertex).
+     * - Ray hits edge or vertex exactly.
+     * - Ray continues beyond the triangle.
+     */
     @Test
     void testFindIntersections() {
         Triangle triangle = new Triangle(
@@ -69,5 +82,4 @@ class TriangleTest {
         Ray ray6 = new Ray(new Point(2, -3, -1), new Vector(0, 0, 1));
         assertNull(triangle.findIntersections(ray6), "Ray should not intersect the triangle");
     }
-
 }

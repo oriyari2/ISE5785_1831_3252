@@ -14,7 +14,7 @@ import primitives.*;
  * Testing Polygons
  * @author Dan
  */
-class PolygonTests {
+class PolygonTest {
     /**
      * Delta value for accuracy when comparing the numbers of type 'double' in
      * assertEquals
@@ -92,7 +92,7 @@ class PolygonTests {
         // TC01: There is a simple single test here - using a quad
         Point[] pts =
                 {new Point(0, 0, 1),
-                                new Point(1, 0, 0),
+                        new Point(1, 0, 0),
                         new Point(0, 1, 0),
                         new Point(-1, 1, 1)};
         Polygon pol = new Polygon(pts);

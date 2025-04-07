@@ -12,7 +12,7 @@ class VectorTest {
     /**
      * DELTA for test precision
      */
-    final static private double DELTA = 0.0001;
+    final static private double DELTA = 0.000001;
 
     /**
      * Vectors for testing

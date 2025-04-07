@@ -17,96 +17,75 @@ public class Triangle extends Polygon {
      * @param q3 The third point of the triangle.
      */
     public Triangle(Point q1, Point q2, Point q3) {
-        super(q1, q2, q3);  // Calls the constructor of Polygon to initialize the triangle with its points
+        super(q1, q2, q3); // Initializes the triangle using the Polygon constructor
     }
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        // 1. מוצאים חיתוך עם המישור של המשולש
+        // Step 1: Find intersection point with the triangle's plane
         List<Point> planeIntersections = plane.findIntersections(ray);
-        // אם אין נקודת חיתוך עם המישור - אין חיתוך עם המשולש
         if (planeIntersections == null) {
-            return null;
+            return null; // No intersection with the plane
         }
 
-        // ניקח את נקודת החיתוך היחידה
+        // Take the single intersection point with the plane
         Point P = planeIntersections.get(0);
 
-        // 2. בדיקה האם הנקודה בתוך המשולש
+        // Step 2: Check if the point lies inside the triangle
         Point p1 = vertices.get(0);
         Point p2 = vertices.get(1);
         Point p3 = vertices.get(2);
 
-        // בדיקה אם הנקודה P זהה לאחד הקודקודים
+        // Check if the intersection point coincides with any of the triangle's vertices
         if (P.equals(p1) || P.equals(p2) || P.equals(p3)) {
-            return null; // הנקודה בדיוק על קודקוד - לא נחשב כחיתוך
+            return null; // Point is exactly on a vertex - not considered inside
         }
 
-        // נבנה וקטורים מהקודקודים לנקודה P
+        // Create vectors from each vertex to the intersection point
         Vector v1, v2, v3;
         try {
-            v1 = P.subtract(p1); // שינוי כיוון הווקטור - מהקודקוד לנקודה P
+            v1 = P.subtract(p1); // Vector from p1 to P
             v2 = P.subtract(p2);
             v3 = P.subtract(p3);
         } catch (IllegalArgumentException e) {
-            // אם נזרקה שגיאה, סימן שאחת הנקודות זהה ל-P
+            // One of the vectors is zero (P is equal to one of the vertices)
             return null;
         }
 
-        // בדיקה אם הנקודה על אחת מצלעות המשולש
-        // נשתמש בווקטורים של צלעות המשולש
+        // Edge vectors of the triangle
         Vector e1 = p2.subtract(p1);
         Vector e2 = p3.subtract(p2);
         Vector e3 = p1.subtract(p3);
 
-        // בדיקה אם P על צלע - אם כן, נחזיר null
-        if (isColinear(v1, e1) || isColinear(v2, e2) || isColinear(v3, e3)) {
-            return null;
-        }
-
-        // נמצא את הנורמל למישור של המשולש
+        // Get the normal vector of the triangle's plane
         Vector n = plane.getNormal(P);
 
-        // נבצע את שיטת המכפלות הווקטוריות בצורה בטוחה
         try {
-            // נשתמש בצלעות המשולש ובווקטורים מהקודקודים לנקודה P
+            // Compute cross products of edge vectors with vectors to point P
             Vector n1 = e1.crossProduct(v1);
             Vector n2 = e2.crossProduct(v2);
             Vector n3 = e3.crossProduct(v3);
 
-            // נבדוק אם כל המכפלות הסקלריות שלהם עם הנורמל באותו סימן
+            // Compute dot products with the normal vector
             double s1 = Util.alignZero(n1.dotProduct(n));
             double s2 = Util.alignZero(n2.dotProduct(n));
             double s3 = Util.alignZero(n3.dotProduct(n));
 
-            // בדיקה אם נקודה על צלע או קודקוד
+            // Check if the point lies exactly on an edge or vertex
             if (Util.isZero(s1) || Util.isZero(s2) || Util.isZero(s3)) {
                 return null;
             }
 
-            // בדיקה אם כל הסימנים זהים
+            // If all dot products have the same sign, the point is inside the triangle
             if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
-                // הנקודה בתוך המשולש
                 return List.of(P);
             }
         } catch (IllegalArgumentException e) {
-            // אם נזרקה שגיאה במכפלה וקטורית, סימן שהנקודה על צלע
+            // Cross product failed (zero vector) - point lies on edge or is invalid
             return null;
         }
 
-        // הנקודה מחוץ למשולש
+        // Point is outside the triangle
         return null;
     }
-
-    // פונקציית עזר לבדיקה אם וקטורים קווים (colinear)
-    private boolean isColinear(Vector v1, Vector v2) {
-        try {
-            Vector crossProduct = v1.crossProduct(v2);
-            return Util.isZero(crossProduct.lengthSquared());
-        } catch (IllegalArgumentException e) {
-            // אם נזרקה שגיאה, סימן שהווקטורים קווים
-            return true;
-        }
-    }
 }
-

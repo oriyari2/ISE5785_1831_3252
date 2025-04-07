@@ -93,7 +93,7 @@ public class PlaneTest {
                 "Constructor should throw an exception for three identical points");
 
         // TC05: All points on the same line
-        Point p4 = new Point(10, 11, 14);  // Changing Z-coordinate to make it non-collinear
+        Point p4 = new Point(7, 8, 9); // Changing Z-coordinate to make it non-collinear
         assertThrows(IllegalArgumentException.class, () -> new Plane(p1, p2, p4),
                 "Constructor should throw an exception when all points are collinear");
     }
@@ -143,7 +143,7 @@ public class PlaneTest {
         assertNull(plane.findIntersections(ray6), "Ray should not intersect the plane");
 
         // TC15: The ray is perpendicular to the plane and starts after it
-        Ray ray7 = new Ray(new Point(0, 0, 10), normal.scale(-1));
+        Ray ray7 = new Ray(new Point(0, 0, 10), normal); // במקום normal.scale(-1)
         assertNull(plane.findIntersections(ray7), "Ray should not intersect the plane");
 
         // TC16: The ray begins at the same point as the plane
