@@ -1,7 +1,5 @@
 package geometries;
 
-import java.util.List;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -59,14 +57,6 @@ public class PlaneTest {
         assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
     }
 
-
-    /**
-     * Validates the plane constructor.
-     * @param plane the plane to validate
-     * @param vec1 the first vector
-     * @param vec2 the second vector
-     */
-
     /**
      * Test method for {@link Plane#Plane(Point, Point, Point)} constructor.
      */
@@ -118,54 +108,50 @@ public class PlaneTest {
         assertEquals(0, normal.dotProduct(vec2), "Normal is not orthogonal to second vector");
         assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
     }
+
     /**
-     * Test method for {@link Plane# Plane(Vector, Vector)} constructor.
+     * Test method for {@link Plane#findIntersections(Ray)}.
      */
     @Test
     void testFindIntersections() {
         // ============ Equivalence Partitions Tests ==============
-        // TC01: A ray1 that is not parallel or perpendicular to a plane intersects the plane
-        Ray ray1 = new Ray(new Point (0,0, 0), vec1);
+        // TC01: A ray that is not parallel or perpendicular to the plane intersects the plane
+        Ray ray1 = new Ray(new Point(0, 0, 0), new Vector(3, 4, 3));
         assertEquals(1, plane.findIntersections(ray1).size(), "Ray should intersect the plane at one point");
 
-        // TC02: Any ray1 that does not intersect the plane
-        Ray ray2 = new Ray(new Point (0,0, 0), new Vector (1,1,0));
+        // TC02: A ray that does not intersect the plane
+        Ray ray2 = new Ray(new Point(0, 0, 0), new Vector(1, 1, 0));
         assertNull(plane.findIntersections(ray2), "Ray should not intersect the plane");
 
         // =============== Boundary Values Tests ==================
 
-        //Beam parallel to the plane
-        // TC11: The beam is contained in a plane
+        // TC11: The ray is contained in the plane
         Ray ray3 = new Ray(p1, vec1);
-        List <Point> intersection3 = plane.findIntersections(ray3);
-        assertNull(intersection3, "Ray should not intersect the plane");
-        // TC12: The ray is parallel to the plane and is not contained in it
-        Ray ray4 = new Ray(new Point (0,0, 1), new Vector (1,1,0));
+        assertNull(plane.findIntersections(ray3), "Ray should not intersect the plane");
+
+        // TC12: The ray is parallel to the plane and not contained in it
+        Ray ray4 = new Ray(new Point(0, 0, 1), new Vector(1, 1, 0));
         assertNull(plane.findIntersections(ray4), "Ray should not intersect the plane");
 
-        //Beam perpendicular to the plane
-        Vector normal = plane.getNormal(p1);
         // TC13: The ray is perpendicular to the plane and starts before it
-        Ray ray5 = new Ray(new Point (0,0, -1), normal);
+        Vector normal = plane.getNormal(p1);
+        Ray ray5 = new Ray(new Point(0, 0, -1), normal.scale(-1));
         assertEquals(1, plane.findIntersections(ray5).size(), "Ray should intersect the plane at one point");
 
-        // TC14: The beam is perpendicular to the plane and starts on it
+        // TC14: The ray is perpendicular to the plane and starts on it
         Ray ray6 = new Ray(p1, normal);
         assertNull(plane.findIntersections(ray6), "Ray should not intersect the plane");
 
-
         // TC15: The ray is perpendicular to the plane and starts after it
-        Ray ray7 = new Ray(new Point(0,0,10), normal.scale(-1));
+        Ray ray7 = new Ray(new Point(0, 0, 10), normal.scale(-1));
         assertNull(plane.findIntersections(ray7), "Ray should not intersect the plane");
 
-        //Neither perpendicular nor parallel
-        // TC16: The ray begins at the same point as the plane represented by it
+        // TC16: The ray begins at the same point as the plane
         Ray ray8 = new Ray(plane.getPoint(), new Vector(1, 2, 3));
         assertNull(plane.findIntersections(ray8), "Ray should not intersect the plane");
 
-        // TC17: The foundation begins on the plain
+        // TC17: The ray begins on the plane
         Ray ray9 = new Ray(p1, new Vector(1, 2, 3));
         assertNull(plane.findIntersections(ray9), "Ray should not intersect the plane");
     }
-
 }
