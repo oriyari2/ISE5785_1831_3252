@@ -1,9 +1,6 @@
 package geometries;
 
-import primitives.Point;
-import primitives.Ray;
-import primitives.Vector;
-
+import primitives.*;
 import java.util.List;
 
 /**
@@ -67,7 +64,37 @@ public class Plane implements Geometry {
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        return null;
+        Point p0 = ray.getHead();
+        Vector v = ray.getDirection();
+
+        // Check if ray direction is parallel to the plane (perpendicular to normal)
+        double nv = normal.dotProduct(v);
+
+        // If the ray is parallel to the plane (nv == 0)
+        if (Util.isZero(nv)) {
+            return null; // No intersection
+        }
+
+        // Check if the ray starts on the plane or the ray's head is on the plane
+        Vector qMinusP0 = q.subtract(p0);
+        double nQMinusP0 = normal.dotProduct(qMinusP0);
+
+        // If the ray starts on the plane
+        if (Util.isZero(nQMinusP0)) {
+            return null; // The ray is in the plane or starts from the plane
+        }
+
+        // Calculate the intersection parameter t
+        double t = nQMinusP0 / nv;
+
+        // If t <= 0, the intersection is behind the ray's head
+        if (t <= 0) {
+            return null;
+        }
+
+        // Calculate the intersection point
+        Point intersectionPoint = ray.getPoint(t);
+
+        return List.of(intersectionPoint);
     }
 }
-

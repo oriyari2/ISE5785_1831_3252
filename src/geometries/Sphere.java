@@ -39,11 +39,12 @@ public class Sphere extends RadialGeometry {
         Vector v = ray.getDirection();
         Point p0 = ray.getHead();
 
-        // The vector from the center of the sphere to the ray's head
+        // Special case: ray starts at center of sphere
         if (p0.equals(center)) {
             return List.of(ray.getPoint(radius));
         }
 
+        // The vector from the ray's head to the center of the sphere
         Vector u = center.subtract(p0);
         double tm = alignZero(v.dotProduct(u));
         double d2 = alignZero(u.lengthSquared() - tm * tm);
@@ -54,22 +55,36 @@ public class Sphere extends RadialGeometry {
             return null;
         }
 
+        // Calculate the distances to intersection points
         double th = alignZero(Math.sqrt(r2 - d2));
-
         if (alignZero(th) == 0) {
+            // Ray is tangent to the sphere - consider as no intersection for numerical stability
             return null;
         }
 
         double t1 = alignZero(tm - th);
         double t2 = alignZero(tm + th);
 
-        if (t1 <= 0 && t2 <= 0) return null;
+        // Check if intersections are in the positive direction of the ray
+        if (t1 <= 0 && t2 <= 0) {
+            return null; // Both intersections behind the ray head
+        }
 
-        if (t1 > 0 && t2 > 0) return List.of(ray.getPoint(t1), ray.getPoint(t2));
-        if (t1 > 0) return List.of(ray.getPoint(t1));
-        if (t2 > 0) return List.of(ray.getPoint(t2));
+        if (t1 > 0 && t2 > 0) {
+            // Both intersections are ahead of the ray head
+            return List.of(ray.getPoint(t1), ray.getPoint(t2));
+        }
+
+        if (t1 > 0) {
+            // Only t1 is ahead
+            return List.of(ray.getPoint(t1));
+        }
+
+        if (t2 > 0) {
+            // Only t2 is ahead
+            return List.of(ray.getPoint(t2));
+        }
 
         return null;
-    }
-}
+    }}
 
