@@ -1,13 +1,17 @@
 package geometries;
 
-import primitives.Point;
-import primitives.Ray;
-import primitives.Vector;
+import primitives.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tolerance for floating-point comparisons.
+ */
 class TubeTest {
 
+    /**
+     * Tolerance for floating-point comparisons.
+     */
     private static final double DELTA = 0.000001;
 
     @Test

@@ -9,7 +9,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for {@link geometries.Geometries} class.
+ * A list of geometries in the scene.
  */
 class GeometriesTest {
 

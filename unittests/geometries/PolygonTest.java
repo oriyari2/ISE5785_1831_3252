@@ -11,8 +11,7 @@ import geometries.Polygon;
 import primitives.*;
 
 /**
- * Testing Polygons
- * @author Dan
+ * Unit tests for Polygon class.
  */
 class PolygonTest {
     /**

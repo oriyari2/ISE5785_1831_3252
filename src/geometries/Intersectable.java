@@ -2,6 +2,10 @@ package geometries;
 import primitives.Ray;
 import primitives.Point;
 import java.util.List;
+
+/**
+ * A list of geometries in the scene.
+ */
 public interface Intersectable {
 
     /**

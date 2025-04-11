@@ -7,12 +7,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * The Geometries class represents a collection of intersectable geometries.
- * It provides a method to find intersections of a ray with all geometries in the collection.
+ * Unit tests for Cylinder class.
  */
 public class Geometries implements Intersectable {
 
-    // List to hold all geometries that are intersectable
+    /**
+     * A list of geometries in the scene.
+     */
     private List<Intersectable> geometries = new LinkedList<>();
 
     /**

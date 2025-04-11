@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test;
 import primitives.*;
 
 /**
- * Unit tests for {@link geometries.Triangle} class.
+ * Unit tests for Triangle class.
  */
 class TriangleTest {
+    /**
+     * Tolerance for floating-point comparisons.
+     */
     private static final double DELTA = 0.000001;
 
     Triangle triangle = new Triangle(new Point(1, 0, 0), new Point(0, 2, 0), new Point(0, 0, 3));

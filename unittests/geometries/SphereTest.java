@@ -8,18 +8,20 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 /**
- * Unit tests for {@link geometries.Sphere} class.
+ * Default constructor for PolygonTest.
  */
 class SphereTest {
-    /**
-     * Test method for {@link geometries.Sphere#getNormal(primitives.Point)}.
-     */
-
     /**
      * DELTA for test precision
      */
     private static final double DELTA = 0.000001;
+
+    /**
+     * Test method for {@link geometries.Sphere#getNormal(primitives.Point)}.
+     * Checks the normal calculation for different cases on the sphere.
+     */
     @Test
     void testGetNormal() {
         // ============ Equivalence Partitions Tests ==============

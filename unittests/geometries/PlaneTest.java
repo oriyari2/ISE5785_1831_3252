@@ -27,27 +27,12 @@ public class PlaneTest {
 
     private final Plane plane = new Plane(p1, p2, p3); // Creating the plane using points
 
-    /**
-     * Test method for {@link Plane# getNormal()}.
-     */
-    @Test
-    void testGetNormal() {
-        Vector normal = plane.getNormal(p1);
-        // ============ Equivalence Partitions Tests ==============
-        // Ensure normal is orthogonal to the plane's vectors
-        assertTrue(normal.dotProduct(vec1) < DELTA, "Normal is not orthogonal to first vector");
-        assertTrue(normal.dotProduct(vec2) < DELTA, "Normal is not orthogonal to second vector");
-
-        // Ensure normal is a unit vector
-        assertEquals(1, normal.length(), DELTA, "Normal vector is not a unit vector");
-    }
-
 
     /**
      * Test method for {@link Plane#getNormal(Point)}.
      */
     @Test
-    void testGetNormalWithPoint() {
+    void testGetNormal() {
         Vector normal = plane.getNormal(p1);
         // ============ Equivalence Partitions Tests ==============
         // Ensure normal is orthogonal to the plane's vectors
