@@ -3,11 +3,7 @@ package geometries;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-import geometries.Cylinder;
-import primitives.Point;
-import primitives.Ray;
-import primitives.Vector;
-
+import primitives.*;
 /**
  * Unit tests for {@link geometries.Cylinder} class.
  */

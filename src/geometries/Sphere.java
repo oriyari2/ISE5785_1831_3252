@@ -6,6 +6,7 @@ import primitives.*;
 import java.util.List;
 
 import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
 
 /**
  * Represents a sphere geometry, which is a type of radial geometry
@@ -41,8 +42,10 @@ public class Sphere extends RadialGeometry {
 
         // Special case: ray starts at center of sphere
         if (p0.equals(center)) {
-            return List.of(ray.getPoint(radius));
+            Point p = ray.getPoint(alignZero(radius));
+            return isZero(radius) ? null : List.of(p); // בטיחות נוספת
         }
+
 
         // The vector from the ray's head to the center of the sphere
         Vector u = center.subtract(p0);

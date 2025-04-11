@@ -30,13 +30,26 @@ public class Tube extends RadialGeometry {
 
     @Override
     public Vector getNormal(Point point) {
-        //calculate the projection of the point on the axis
-        double t = Util.alignZero(this.axis.getDirection().dotProduct(point.subtract(this.axis.getPoint(0d))));
+        // Get the direction vector of the axis of the tube
+        Vector v = axis.getDirection();
 
-        //find center of the tube
-        //return the normalized vector from the center of the tube to the point
-        return point.subtract(this.axis.getPoint(t)).normalize();
-        }
+        // Get the starting point of the axis (the ray's origin)
+        Point p0 = axis.getHead();
+
+        // Create a vector from the axis origin to the given point
+        Vector v2 = point.subtract(p0);
+
+        // Calculate the projection of the point onto the axis
+        double t = Util.alignZero(v.dotProduct(v2));
+
+        // If the projection is zero, the orthogonal point is simply p0 (the axis origin)
+        Point o = Util.isZero(t) ? p0 : axis.getPoint(t);
+
+        // Return the normal vector, which is the normalized vector from the point to the closest point on the axis
+        return point.subtract(o).normalize();
+    }
+
+
 
     @Override
     public List<Point> findIntersections(Ray ray) {

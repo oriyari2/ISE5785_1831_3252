@@ -54,13 +54,8 @@ public class Plane implements Geometry {
         this.normal = cross.normalize();
     }
 
-    /**
-     * Returns the normal vector of the plane at a given point.
-     * Since the normal is constant for a plane, it will always return the same vector.
-     *
-     * @param point a point on the plane (not used in the calculation)
-     * @return the normal vector of the plane
-     */
+
+    @Override
     public Vector getNormal(Point point) {
         return normal;
     }

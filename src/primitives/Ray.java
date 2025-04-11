@@ -54,7 +54,6 @@ public final class Ray {
      * @param t the distance from the head
      * @return the point on the ray
      */
-// This should be in your Ray class
     public Point getPoint(double t) {
         if (alignZero(t) == 0) return head;
         return head.add(direction.scale(t));
