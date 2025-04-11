@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Geometries implements Intersectable {
     // Geometries class implementation
-    List <Intersectable> geometries= new LinkedList<Intersectable>();
+    private List <Intersectable> geometries= new LinkedList<Intersectable>();
     /**
      * Default constructor for the Geometries class.
      * Initializes an empty list of geometries.
@@ -33,6 +33,17 @@ public class Geometries implements Intersectable {
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        return null;
+        List<Point> result = null;
+        for (Intersectable item : geometries) {
+            List<Point> itemPoints = item.findIntersections(ray);
+            if (itemPoints != null) {
+                if (result == null) {
+                    result = new LinkedList<>();
+                }
+                result.addAll(itemPoints);
+            }
+        }
+        return result;
     }
+
 }

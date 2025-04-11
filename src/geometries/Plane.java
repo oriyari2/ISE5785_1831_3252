@@ -74,36 +74,35 @@ public class Plane implements Geometry {
         return q;
     }
 
+    /**
+     * Finds the intersection points of the ray with the plane.
+     *
+     * @param ray the ray to check for intersections with the plane
+     * @return a list of intersection points between the ray and the plane, or null if there is no intersection
+     */
 
     @Override
     public List<Point> findIntersections(Ray ray) {
         Point p0 = ray.getHead();
-
-        // If the ray starts at the reference point of the plane, there is no intersection
-        if (p0.equals(q))
-            return null;
-
         Vector v = ray.getDirection();
+
         double nv = normal.dotProduct(v);
 
-        // If the ray is parallel to the plane, there is no intersection
-        if (Util.isZero(nv))
-            return null;
+        // If the ray is parallel to the plane - no intersection
+        if (Util.isZero(nv)) return null;
+
+        // If the ray starts exactly at the reference point on the plane - considered no intersection
+        if (q.equals(p0)) return null;
 
         Vector qMinusP0 = q.subtract(p0);
         double nQMinusP0 = normal.dotProduct(qMinusP0);
 
-        // If the ray starts on the plane or the dot product is zero, there is no intersection
-        if (Util.isZero(nQMinusP0))
-            return null;
+        double t = Util.alignZero(nQMinusP0 / nv);
 
-        double t = nQMinusP0 / nv;
+        // If the intersection is behind the ray's head - no intersection
+        if (t <= 0) return null;
 
-        // If the intersection point is behind the ray's head, there is no intersection
-        if (t <= 0)
-            return null;
-
-        Point intersectionPoint = ray.getPoint(t);
-        return List.of(intersectionPoint);
+        // Return the intersection point
+        return List.of(ray.getPoint(t));
     }
 }
