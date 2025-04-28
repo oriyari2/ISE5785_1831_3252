@@ -1,6 +1,7 @@
 package geometries;
 
 import primitives.*;
+
 import java.util.List;
 
 /**
@@ -88,6 +89,7 @@ public class Plane implements Geometry {
 
         // If the ray starts exactly at the reference point on the plane - considered no intersection
         if (q.equals(p0)) return null;
+        if (Util.isZero(normal.dotProduct(p0.subtract(q)))) return null;
 
         Vector qMinusP0 = q.subtract(p0);
         double nQMinusP0 = normal.dotProduct(qMinusP0);
