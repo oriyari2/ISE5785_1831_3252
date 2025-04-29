@@ -5,6 +5,10 @@ package primitives;
  * A vector extends {@link Point} but cannot be the zero vector (0,0,0).
  */
 public class Vector extends Point {
+    public static final Vector AXIS_X = new Vector(1, 0, 0);
+    public static final Vector AXIS_Y = new Vector(0, 1, 0);
+    public static final Vector AXIS_Z = new Vector(0, 0, 1);;
+    public static final Vector MINUS_Y = new Vector(0,-1,0);
     /**
      * Constructs a vector from three coordinates.
      *
