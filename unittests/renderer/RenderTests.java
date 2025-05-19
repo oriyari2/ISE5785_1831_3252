@@ -9,7 +9,6 @@ import geometries.*;
 import lighting.AmbientLight;
 import primitives.*;
 import renderer.Camera;
-import renderer.ImageWriter;
 import renderer.RayTracerType;
 import scene.Scene;
 import scene.SceneBuilderXML;
