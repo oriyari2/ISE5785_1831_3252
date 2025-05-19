@@ -244,6 +244,13 @@ public class Camera implements Cloneable {
             camera.height = height;
             return this;
         }
+        /**
+         * Sets the ray tracer for rendering the scene.
+         *
+         * @param scene      The scene to be rendered.
+         * @param tracerType The type of ray tracer to use.
+         * @return The Builder instance.
+         */
 
         public Builder setRayTracer(Scene scene, RayTracerType tracerType)
         {

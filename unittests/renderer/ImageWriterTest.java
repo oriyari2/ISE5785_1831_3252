@@ -5,6 +5,10 @@ import primitives.*;
 
 import static primitives.Util.isZero;
 
+/**
+ * Unit tests for the ImageWriter class.
+ * This test creates a simple image with a grid pattern and saves it to a file.
+ */
 public class ImageWriterTest {
 
     Color YELLOW = new Color(java.awt.Color.YELLOW);

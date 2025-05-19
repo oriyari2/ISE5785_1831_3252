@@ -25,13 +25,17 @@ public class SimpleRayTracer extends RayTracerBase {
     public Color traceRay(Ray ray) {
         List<Point> points = scene.geometries.findIntersections(ray);
         if (points == null) {
-            return scene.background != null ? scene.background : AmbientLight.NONE.getIntensity(); // ברירת מחדל לשחור
+            return scene.background != null ? scene.background : AmbientLight.NONE.getIntensity();
         }
         Point closestPoint = ray.findClosestPoint(points);
-        return calcColor(closestPoint) != null ? calcColor(closestPoint) : Color.BLACK;
+        return calcColor(closestPoint) != null ? calcColor(closestPoint) : AmbientLight.NONE.getIntensity();
     }
 
-
+    /**
+     * Calculates the color at a given point in the scene.
+     * @param point the point to calculate the color for
+     * @return the color at the given point
+     */
     private Color calcColor(Point point) {
         return scene.ambientLight.getIntensity();
     }

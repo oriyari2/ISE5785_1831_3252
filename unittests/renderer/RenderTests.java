@@ -86,29 +86,40 @@ public class RenderTests {
          .writeToImage("color render test");
    }*/
 
-    /** Test for XML based scene - for bonus */
+    /**
+     * Test for rendering a scene loaded from an XML file.
+     * <p>
+     * This test demonstrates how to load a scene from an external XML configuration,
+     * build a camera using the builder pattern, render the image, draw a grid over it,
+     * and save the final output to a PNG image.
+     * </p>
+     */
     @Test
     void basicRenderXml() {
-        // Ensure the XML file path is correct
+        // Path to the XML file that defines the scene configuration
         String xmlFilePath = "renderTestTwoColors.xml";
 
-        // Load the scene from the XML file
+        // Load the scene from the XML file, asserting no exception occurs
         Scene scene = assertDoesNotThrow(() -> SceneBuilderXML.loadSceneFromXML(xmlFilePath),
                 "Failed to load scene from XML");
 
-        // Build the camera and render the image
+        // Build a camera using the builder pattern
         Camera camera = new Camera.Builder()
-                .setLocation(Point.ZERO)
-                .setDirection(new Point(0, 0, -1), Vector.AXIS_Y)
-                .setVpDistance(100)
-                .setVpSize(500, 500)
-                .setRayTracer(scene, RayTracerType.SIMPLE)
-                .setResolution(1000, 1000)
-                .build();
+                .setLocation(Point.ZERO) // Set camera position at the origin (0, 0, 0)
+                .setDirection(new Point(0, 0, -1), Vector.AXIS_Y) // Look in the negative Z direction, with Y as up
+                .setVpDistance(100) // Distance from the camera to the view plane
+                .setVpSize(500, 500) // Size of the view plane (width × height)
+                .setRayTracer(scene, RayTracerType.SIMPLE) // Attach a basic ray tracer to the scene
+                .setResolution(1000, 1000) // Set output image resolution
+                .build(); // Build and return the Camera object
 
+        // Render the image based on the scene and camera configuration
         camera.renderImage();
+
+        // Draw a grid with cell size 100 pixels and white color
+        camera.printGrid(100, new Color(WHITE));
+
+        // Save the rendered image to a file
         camera.writeToImage("basicRenderXmlOutput");
     }
-
-
 }
