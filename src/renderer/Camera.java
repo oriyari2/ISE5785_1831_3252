@@ -1,6 +1,7 @@
 package renderer;
 
 import primitives.*;
+import scene.Scene;
 
 import java.util.MissingResourceException;
 
@@ -21,7 +22,10 @@ public class Camera implements Cloneable {
     private double height = 0.0; // The height of the view plane
     private Point p0 = null; // The position of the camera
     private Point pcenter = null; // The center point of the view plane
-
+    private ImageWriter imageWriter = null; // The image writer for rendering the scene
+    private RayTracerBase rayTracer = null; // The ray tracer for rendering the scene
+    private int nX = 1; // The number of pixels in the x direction
+    private int nY = 1; // The number of pixels in the y direction
     /**
      * Private constructor to prevent direct instantiation.
      * Use the Builder class to create a Camera object.
@@ -60,12 +64,12 @@ public class Camera implements Cloneable {
         Point pIJ = pcenter;
 
         // Adjust the point horizontally by scaling the rightward vector
-        if (xJ != 0) {
+        if (!isZero(xJ)) {
             pIJ = pIJ.add(vRight.scale(xJ));
         }
 
         // Adjust the point vertically by scaling the upward vector (negative for correct orientation)
-        if (yI != 0) {
+        if (!isZero(yI)) {
             pIJ = pIJ.add(vUp.scale(-yI));
         }
 
@@ -74,11 +78,74 @@ public class Camera implements Cloneable {
     }
 
     /**
+     * Renders the image using the ray tracer.
+     * This method is responsible for generating the final image based on the scene and camera parameters.
+     *
+     * @return The Camera object itself for method chaining.
+     */
+    public Camera renderImage() {
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                // Construct a ray for each pixel and trace it
+                castRay(nX, nY, j, i);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Casts a ray from the camera to a specific pixel on the view plane.
+     * @param nX
+     * @param nY
+     * @param j
+     * @param i
+     */
+    private void castRay(int nX, int nY, int j, int i) {
+        // Calculate the size of each pixel in the view plane
+        Ray ray = constructRay(nX, nY, j, i);
+        // Perform ray tracing and set the pixel color in the image writer
+        Color color = rayTracer.traceRay(ray);
+        // Set the pixel color in the image writer
+        imageWriter.writePixel(j, i, color);
+    }
+
+    /**
+     * Prints a grid on the image.
+     * This method adds a grid pattern to the rendered image for visual reference.
+     *
+     * @param interval The interval between grid lines.
+     * @param color    The color of the grid lines.
+     * @return The Camera object itself for method chaining.
+     */
+    public Camera printGrid(int interval, Color color) {
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                if (i % interval == 0 || j % interval == 0) {
+                    imageWriter.writePixel(j, i, color);
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Writes the rendered image to a file.
+     * This method saves the generated image to a specified file name.
+     *
+     * @param fileName The name of the file to save the image.
+     * @return The Camera object itself for method chaining.
+     */
+    public Camera writeToImage(String fileName){
+        imageWriter.writeToImage(fileName);
+        return this;
+    }
+    /**
      * Builder class to construct a Camera object with specific parameters.
      */
     public static class Builder {
         private final Camera camera = new Camera();
         private Point target = null; // Target point the camera is looking at
+
 
         /**
          * Sets the direction vectors of the camera.
@@ -178,6 +245,15 @@ public class Camera implements Cloneable {
             return this;
         }
 
+        public Builder setRayTracer(Scene scene, RayTracerType tracerType)
+        {
+            // Set the ray tracer for rendering the scene
+            if(tracerType == RayTracerType.SIMPLE)
+                camera.rayTracer = new SimpleRayTracer(scene);
+            else
+                camera.rayTracer = null;
+            return this;
+        }
         /**
          * Builds and returns the constructed Camera object.
          * This method ensures immutability by cloning the Camera instance.
@@ -206,7 +282,7 @@ public class Camera implements Cloneable {
          */
         private void validate(Camera camera) throws MissingResourceException {
             // Ensure the view plane size is set
-            if (camera.width == 0 || camera.height == 0) {
+            if (isZero(camera.width) || isZero(camera.height)) {
                 throw new MissingResourceException("Missing rendering data", "Camera", "View plane size is not set");
             }
 
@@ -216,7 +292,7 @@ public class Camera implements Cloneable {
             }
 
             // Ensure the distance to the view plane is positive
-            if (camera.distance == 0.0) {
+            if (isZero(camera.distance)) {
                 throw new MissingResourceException("Missing rendering data", "Camera", "Distance to view plane is not set");
             }
 
@@ -279,8 +355,14 @@ public class Camera implements Cloneable {
          * @return The Builder instance.
          */
         public Builder setResolution(int nx, int ny) {
-            // TODO: Implement resolution setting logic
+            if(alignZero(nx) <= 0 || alignZero(ny) <= 0) {
+                throw new IllegalArgumentException("Resolution must be positive");
+            }
+            camera.nX = nx;
+            camera.nY = ny;
+            camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name ,nx, ny);
             return this;
         }
     }
+
 }

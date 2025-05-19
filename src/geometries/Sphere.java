@@ -42,8 +42,8 @@ public class Sphere extends RadialGeometry {
 
         // Special case: ray starts at center of sphere
         if (p0.equals(center)) {
-            Point p = ray.getPoint(alignZero(radius));
-            return isZero(radius) ? null : List.of(p); // בטיחות נוספת
+            Point p = ray.getPoint(radius);
+            return List.of(p);
         }
 
 

@@ -30,3 +30,6 @@ bin/
 doc/
 lib/
 
+# Ignore images folder
+/images/
+

@@ -11,80 +11,84 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CameraIntersectionsIntegrationTests {
 
-    /// Builder for initializing cameras in tests
-    private final Camera.Builder camBuilder = Camera.getBuilder()
+    // === Constants for the view plane size ===
+    private static final int NX = 3;
+    private static final int NY = 3;
+
+    /// Builder with fixed direction and view plane distance
+    private final Camera.Builder camBaseBuilder = Camera.getBuilder()
             .setDirection(new Point(0, 0, -1), Vector.MINUS_Y)
-            .setVpSize(3, 3)
             .setVpDistance(1);
 
-    /// Camera positioned at origin
-    private final Camera camOrigin = camBuilder.setLocation(Point.ZERO).build();
-    /// Camera slightly in front of origin
-    private final Camera camOffset = camBuilder.setLocation(new Point(0, 0, 0.5)).build();
+    /// Camera positioned at origin with view plane size NX x NY
+    private final Camera camOrigin = camBaseBuilder.setLocation(Point.ZERO).setVpSize(NX, NY).build();
+    /// Camera slightly in front of origin with view plane size NX x NY
+    private final Camera camOffset = camBaseBuilder.setLocation(new Point(0, 0, 0.5)).setVpSize(NX, NY).build();
 
     /**
      * Helper function to test the total number of intersections between a shape and rays from the camera
-     * @param cam the camera used to construct rays
-     * @param shape the geometric shape to intersect
-     * @param expectedCount expected number of intersection points
+     *
+     * @param expected expected number of intersection points
+     * @param camera   the camera used to construct rays
+     * @param shape    the geometric shape to intersect
      */
-    private void assertIntersectionCount(Camera cam, Intersectable shape, int expectedCount) {
+    private void assertIntersectionCount(int expected, Camera camera, Intersectable shape) {
         int totalHits = 0;
-        for (int row = 0; row < 3; ++row) {
-            for (int col = 0; col < 3; ++col) {
-                var intersections = shape.findIntersections(cam.constructRay(3, 3, col, row));
+        for (int row = 0; row < NY; ++row) {
+            for (int col = 0; col < NX; ++col) {
+                var intersections = shape.findIntersections(camera.constructRay(NX, NY, col, row));
                 totalHits += intersections == null ? 0 : intersections.size();
             }
         }
-        assertEquals(expectedCount, totalHits, "Unexpected number of intersection points");
+        assertEquals(expected, totalHits, "Unexpected number of intersection points");
     }
 
     /// Test camera-ray intersection with spheres of various positions and sizes
     @Test
     public void cameraRaySphereIntegration() {
         // TC01: Small sphere directly in front of camera, expect 2 hits
-        assertIntersectionCount(camOrigin, new Sphere(1.0, new Point(0, 0, -3)), 2);
+        assertIntersectionCount(2, camOrigin, new Sphere(1.0, new Point(0, 0, -3)));
 
         // TC02: Larger sphere enclosing the view plane, expect 18 hits
-        assertIntersectionCount(camOffset, new Sphere(2.6, new Point(0, 0, -2.5)), 18);
+        assertIntersectionCount(18, camOffset, new Sphere(2.6, new Point(0, 0, -2.5)));
 
         // TC03: Medium sphere, expect 10 hits
-        assertIntersectionCount(camOffset, new Sphere(1.9, new Point(0, 0, -2)), 10);
+        assertIntersectionCount(10, camOffset, new Sphere(1.9, new Point(0, 0, -2)));
 
         // TC04: Camera inside large sphere, expect 9 hits
-        assertIntersectionCount(camOffset, new Sphere(4.1, new Point(0, 0, -1)), 9);
+        assertIntersectionCount(9, camOffset, new Sphere(4.1, new Point(0, 0, -1)));
 
         // TC05: Sphere behind camera, expect 0 hits
-        assertIntersectionCount(camOrigin, new Sphere(0.5, new Point(0, 0, 1)), 0);
+        assertIntersectionCount(0, camOrigin, new Sphere(0.5, new Point(0, 0, 1)));
     }
 
     /// Test camera-ray intersection with various planes
     @Test
     public void cameraRayPlaneIntegration() {
         // TC01: Plane perpendicular to camera direction, expect 9 hits
-        assertIntersectionCount(camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 0, 1)), 9);
+        assertIntersectionCount(9, camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 0, 1)));
 
         // TC02: Plane at a shallow angle, expect 9 hits
-        assertIntersectionCount(camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 1, 2)), 9);
+        assertIntersectionCount(9, camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 1, 2)));
 
         // TC03: Plane almost parallel to lower rays, some rays miss, expect 6 hits
-        assertIntersectionCount(camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 1, 1)), 6);
+        assertIntersectionCount(6, camOrigin, new Plane(new Point(0, 0, -5), new Vector(0, 1, 1)));
 
         // TC04: Plane behind all rays (due to orientation), expect 0 hits
-        assertIntersectionCount(camOrigin, new Plane(new Point(0, 0, 5), new Vector(0, -1, -1)), 0);
+        assertIntersectionCount(0, camOrigin, new Plane(new Point(0, 0, 5), new Vector(0, -1, -1)));
     }
 
     /// Test camera-ray intersection with triangles
     @Test
     public void cameraRayTriangleIntegration() {
         // TC01: Small triangle within center pixel, expect 1 hit
-        assertIntersectionCount(camOrigin,
-                new Triangle(new Point(1, 1, -2), new Point(-1, 1, -2), new Point(0, -0.5, -2)),
-                1);
+        assertIntersectionCount(1, camOrigin,
+                new Triangle(new Point(1, 1, -2), new Point(-1, 1, -2), new Point(0, -0.5, -2))
+        );
 
         // TC02: Larger triangle covering multiple pixels, expect 2 hits
-        assertIntersectionCount(camOrigin,
-                new Triangle(new Point(1, 1, -2), new Point(-1, 1, -2), new Point(0, -3, -2)),
-                2);
+        assertIntersectionCount(2, camOrigin,
+                new Triangle(new Point(1, 1, -2), new Point(-1, 1, -2), new Point(0, -3, -2))
+        );
     }
 }

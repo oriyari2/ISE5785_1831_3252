@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import primitives.*;
 import renderer.Camera;
+import scene.Scene;
 
 /**
  * Testing Camera Class
@@ -64,7 +65,7 @@ class CameraTest {
 
     @Test
     void testBuilder() {
-        cameraBuilder.setVpSize(4, 4).setResolution(2, 2);
+        cameraBuilder.setVpSize(4, 4).setRayTracer(new Scene("TODO"), RayTracerType.SIMPLE).setResolution(2, 2);
 
         // ============ Equivalence Partitions Tests ==============
         // EP01: set to a target point without up vector

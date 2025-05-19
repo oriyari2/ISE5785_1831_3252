@@ -93,7 +93,6 @@ public class Plane implements Geometry {
 
         Vector qMinusP0 = q.subtract(p0);
         double nQMinusP0 = normal.dotProduct(qMinusP0);
-
         double t = Util.alignZero(nQMinusP0 / nv);
 
         // If the intersection is behind the ray's head - no intersection
