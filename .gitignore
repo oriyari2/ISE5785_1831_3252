@@ -33,3 +33,5 @@ lib/
 # Ignore images folder
 /images/
 
+# Ignore test resources
+renderTestTwoColors.xml
