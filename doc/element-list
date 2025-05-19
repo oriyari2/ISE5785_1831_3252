@@ -1,4 +1,7 @@
 geometries
+lighting
 primitives
 renderer
+scene
 test
+unittests.renderer
