@@ -87,7 +87,7 @@ public class Camera implements Cloneable {
         for (int i = 0; i < nY; i++) {
             for (int j = 0; j < nX; j++) {
                 // Construct a ray for each pixel and trace it
-                castRay(nX, nY, j, i);
+                castRay(j, i);
             }
         }
         return this;
@@ -95,12 +95,11 @@ public class Camera implements Cloneable {
 
     /**
      * Casts a ray from the camera to a specific pixel on the view plane.
-     * @param nX
-     * @param nY
+     *
      * @param j
      * @param i
      */
-    private void castRay(int nX, int nY, int j, int i) {
+    private void castRay(int j, int i) {
         // Calculate the size of each pixel in the view plane
         Ray ray = constructRay(nX, nY, j, i);
         // Perform ray tracing and set the pixel color in the image writer
