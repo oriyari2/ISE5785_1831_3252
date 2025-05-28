@@ -1,6 +1,7 @@
 package geometries;
-import primitives.Vector;
-import primitives.Point;
+import primitives.*;
+
+import java.util.List;
 
 /**
  * An abstract class representing a geometric object in 3D space.
@@ -8,7 +9,7 @@ import primitives.Point;
  * This class serves as a base for all geometric shapes and ensures that
  * every shape has a method to compute the normal vector at a given point.
  */
-public interface Geometry extends Intersectable {
+public abstract class Geometry extends Intersectable {
    /**
     * Computes the normal vector to the surface of the geometric shape at a given point.
     *
@@ -16,5 +17,21 @@ public interface Geometry extends Intersectable {
     * @return The normal vector at the given point
     */
    public abstract Vector getNormal(Point point);
+
+    /**
+     * Gets the color of the geometry.
+     *
+     * @return The color of the geometry
+     */
+    protected Color emission = Color.BLACK;
+
+    public Color getEmission() {
+        return emission;
+    }
+    public Geometry setEmission(Color emission) {
+       this.emission = emission;
+       return this;
+    }
+
 }
 

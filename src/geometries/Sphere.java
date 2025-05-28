@@ -60,7 +60,7 @@ public class Sphere extends RadialGeometry {
 
         // Calculate the distances to intersection points
         double th = alignZero(Math.sqrt(r2 - d2));
-        if (alignZero(th) == 0) {
+        if (isZero(th)) {
             // Ray is tangent to the sphere - consider as no intersection for numerical stability
             return null;
         }

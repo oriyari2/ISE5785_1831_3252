@@ -9,7 +9,7 @@ import primitives.*;
  * The polygon must be defined by at least three ordered, coplanar, and non-collinear vertices.
  * The polygon is assumed to be convex.
  */
-public class Polygon implements Geometry {
+public class Polygon extends Geometry {
     /** List of polygon's vertices */
     protected final List<Point> vertices;
 
@@ -84,42 +84,36 @@ public class Polygon implements Geometry {
     }
 
     @Override
-    public List<Point> findIntersections(Ray ray) {
-        // First, check for intersection with the plane of the polygon
-        List<Point> planeIntersections = plane.findIntersections(ray);
-        if (planeIntersections == null) {
-            return null;  // No intersection with the polygon's plane
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray)
+    {
+        List<Intersection> planeIntersections = plane.calculateIntersections(ray);
+        if (planeIntersections == null) return null;  // No intersection with the plane
+
+        Intersection p = planeIntersections.get(0);  // Get the intersection point with the plane
+
+        Point p0 = ray.getHead();
+        Vector dir = ray.getDirection();
+
+        // Create vectors from the first vertex to the intersection point
+        Vector v1p = vertices.get(0).subtract(p0);
+        Vector v2p = vertices.get(1).subtract(p0);
+        Vector v3p = vertices.get(2).subtract(p0);
+
+        // Normals to triangle's edges
+        Vector n1 = v1p.crossProduct(v2p).normalize();
+        Vector n2 = v2p.crossProduct(v3p).normalize();
+        Vector n3 = v3p.crossProduct(v1p).normalize();
+
+        // Check if the intersection point is on the same side of all edges
+        double s1 = alignZero(dir.dotProduct(n1));
+        double s2 = alignZero(dir.dotProduct(n2));
+        double s3 = alignZero(dir.dotProduct(n3));
+
+        // If all have the same sign (all positive or all negative), the point is inside
+        if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
+            return List.of(new Intersection(this, p));  // Return the intersection point wrapped in an Intersection object
         }
 
-        Point p0 = ray.getHead();  // Ray's starting point
-        Vector v = ray.getDirection();  // Ray's direction
-        Point p = planeIntersections.get(0);  // The intersection point with the plane
-
-        // Get vectors from the ray's start point to two vertices of the polygon
-        Vector v1 = vertices.get(0).subtract(p0);
-        Vector v2 = vertices.get(1).subtract(p0);
-
-        // Get the normal to the first edge of the polygon
-        Vector n = v1.crossProduct(v2).normalize();
-
-        // Determine the sign of the dot product with the ray's direction
-        double sign = alignZero(v.dotProduct(n));
-        if (sign == 0) return null;  // The ray lies on the edge, no intersection
-
-        boolean positive = sign > 0;
-
-        // Check that all cross products with the ray's direction have the same sign
-        for (int i = 1; i < size; ++i) {
-            v1 = vertices.get(i).subtract(p0);
-            v2 = vertices.get((i + 1) % size).subtract(p0);
-            n = v1.crossProduct(v2).normalize();
-            sign = alignZero(v.dotProduct(n));
-
-            if (sign == 0 || (sign > 0) != positive) {
-                return null;  // The ray intersects the plane but outside the polygon
-            }
-        }
-
-        return List.of(p);  // The ray intersects inside the polygon
+        return null;  // No valid intersection within the polygon
     }
 }

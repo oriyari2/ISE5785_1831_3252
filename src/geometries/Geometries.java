@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Unit tests for Cylinder class.
  */
-public class Geometries implements Intersectable {
+public class Geometries extends Intersectable {
 
     /**
      * A list of geometries in the scene.

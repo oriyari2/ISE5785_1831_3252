@@ -24,18 +24,27 @@ public class ImageWriterTest {
         // Create an ImageWriter object
         ImageWriter imageWriter = new ImageWriter(filePath, nx, ny);
 
-        // Fill the image with yellow color
-        for (int j = 0; j < nx; j++) {
-            for (int i = 0; i < ny; i++) {
-                // Draw a grid of red lines
-                if (isZero(i % interval) || isZero(j % interval)) {
-                    imageWriter.writePixel(j, i, RED);
-                } else {
-                    // Fill the rest of the image with yellow color
-                    imageWriter.writePixel(j, i, YELLOW);
-                }
+        // Fill the entire image with yellow color
+        for (int j = 0; j < ny; j++) {
+            for (int i = 0; i < nx; i++) {
+                imageWriter.writePixel(i, j, YELLOW);
             }
         }
+
+        // Draw horizontal red grid lines
+        for (int row = 0; row < ny; row += interval) {
+            for (int col = 0; col < nx; col++) {
+                imageWriter.writePixel(col, row, RED);
+            }
+        }
+
+        // Draw vertical red grid lines
+        for (int col = 0; col < nx; col += interval) {
+            for (int row = 0; row < ny; row++) {
+                imageWriter.writePixel(col, row, RED);
+            }
+        }
+
         // Save the image to a file
         imageWriter.writeToImage("yellowFirstImage");
     }

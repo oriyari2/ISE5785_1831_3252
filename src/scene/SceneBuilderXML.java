@@ -4,6 +4,7 @@ import geometries.*;
 import lighting.AmbientLight;
 import org.w3c.dom.*;
 import primitives.Color;
+import primitives.Double3;
 import primitives.Point;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -93,38 +94,41 @@ public class SceneBuilderXML {
     }
 
     /**
-     * Parses a {@link Color} object from a space-separated RGB string (e.g., "255 200 150").
+     * Parses a {@link Color} object from a space-separated RGB string.
      *
-     * @param colorStr RGB string
+     * @param colorStr RGB string (e.g., "255 200 150")
      * @return a {@link Color} instance
      */
     private static Color parseColor(String colorStr) {
-        String[] rgb = colorStr.trim().split(" ");
-        if (rgb.length != 3) {
-            throw new IllegalArgumentException("Invalid color format: " + colorStr);
-        }
-        return new Color(
-                Double.parseDouble(rgb[0]),
-                Double.parseDouble(rgb[1]),
-                Double.parseDouble(rgb[2])
-        );
+        return new Color(parseDouble3(colorStr));
     }
 
     /**
-     * Parses a {@link Point} object from a space-separated string (e.g., "1.0 2.0 -3.5").
+     * Parses a {@link Point} object from a space-separated string.
      *
-     * @param str string representing a 3D point
+     * @param str string representing a 3D point (e.g., "1.0 2.0 -3.5")
      * @return a {@link Point} instance
      */
     private static Point parsePoint(String str) {
-        String[] coords = str.trim().split(" ");
-        if (coords.length != 3) {
-            throw new IllegalArgumentException("Invalid point format: " + str);
+        return new Point(parseDouble3(str));
+    }
+
+    /**
+     * Parses a {@link Double3} object from a space-separated string of 3 numbers.
+     *
+     * @param str the input string (e.g., "1.0 2.0 3.0")
+     * @return a {@link Double3} instance
+     * @throws IllegalArgumentException if the string format is invalid
+     */
+    private static Double3 parseDouble3(String str) {
+        String[] parts = str.trim().split(" ");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Invalid format for Double3: " + str);
         }
-        return new Point(
-                Double.parseDouble(coords[0]),
-                Double.parseDouble(coords[1]),
-                Double.parseDouble(coords[2])
+        return new Double3(
+                Double.parseDouble(parts[0]),
+                Double.parseDouble(parts[1]),
+                Double.parseDouble(parts[2])
         );
     }
 
@@ -168,5 +172,4 @@ public class SceneBuilderXML {
         }
         return value;
     }
-
 }
