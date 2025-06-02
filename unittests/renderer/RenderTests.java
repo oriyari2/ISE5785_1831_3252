@@ -83,6 +83,30 @@ class RenderTests {
                 .writeToImage("color render test");
     }
 
+    @Test
+    void renderMultiColorLightTest() {
+        Scene scene = new Scene("Multi color").setAmbientLight(new AmbientLight(new Color(WHITE)));
+        scene.geometries //
+                .add(// center
+                        new Sphere(new Point(0, 0, -100), 50).setMaterial(new Material().setkA(new Double3(0.4))),
+                        // up left
+                        new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100))
+                                .setMaterial(new Material().setkA(new Double3(0, 0.8, 0))),
+                        // down left
+                        new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100))
+                                .setMaterial(new Material().setkA(new Double3(0.8, 0, 0))),
+                        // down right
+                        new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100))
+                                .setMaterial(new Material().setkA(new Double3(0.0, 0, 0.8))));
+        camera //
+                .setRayTracer(scene, RayTracerType.SIMPLE) //
+                .setResolution(1000, 1000) //
+                .build() //
+                .renderImage() //
+                .printGrid(100, new Color(WHITE)) //
+                .writeToImage("color render test with lights");
+    }
+
     /** Test for JSON based scene - for bonus */
     @Test
     void basicRenderJson() {
