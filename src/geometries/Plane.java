@@ -86,45 +86,36 @@ public class Plane extends Geometry {
         Vector v = ray.getDirection();
         Point p0 = ray.getHead();
 
-        // Calculate the denominator for the intersection formula
+        // If the ray's origin is exactly on the plane reference point,
+        // there is no unique intersection point (or the ray lies in the plane)
+        if (p0.equals(q)) {
+            return null;
+        }
+
+        // Compute the dot product of the plane normal and the ray direction
         double nv = alignZero(normal.dotProduct(v));
+
+        // If the dot product is zero, the ray is parallel to the plane (no intersection)
         if (isZero(nv)) {
-            return null; // The ray is parallel to the plane, no intersection
+            return null;
         }
 
-        // Calculate the numerator for the intersection formula
-        double t = alignZero(normal.dotProduct(q.subtract(p0)) / nv);
+        // Subtract the ray origin from the plane reference point (safe since p0 ≠ q)
+        Vector p0q = q.subtract(p0);
+
+        // Compute t (scalar for ray equation) using the plane intersection formula
+        double t = alignZero(normal.dotProduct(p0q) / nv);
+
+        // If t is zero or negative, the intersection is behind the ray origin or on it
         if (t <= 0) {
-            return null; // The intersection point is behind the ray's head
+            return null;
         }
 
-        // Calculate the intersection point
+        // Compute the intersection point using the ray equation: P = p0 + t * v
         Point intersectionPoint = ray.getPoint(t);
+
+        // Return the intersection as a list with a single Intersection object
         return List.of(new Intersection(this, intersectionPoint));
     }
 
-    @Override
-    public List<Point> findIntersections(Ray ray) {
-        Point p0 = ray.getHead();
-        Vector v = ray.getDirection();
-
-        double nv = normal.dotProduct(v);
-
-        // If the ray is parallel to the plane - no intersection
-        if (Util.isZero(nv)) return null;
-
-        // If the ray starts exactly at the reference point on the plane - considered no intersection
-        if (q.equals(p0)) return null;
-        if (Util.isZero(normal.dotProduct(p0.subtract(q)))) return null;
-
-        Vector qMinusP0 = q.subtract(p0);
-        double nQMinusP0 = normal.dotProduct(qMinusP0);
-        double t = Util.alignZero(nQMinusP0 / nv);
-
-        // If the intersection is behind the ray's head - no intersection
-        if (t <= 0) return null;
-
-        // Return the intersection point
-        return List.of(ray.getPoint(t));
-    }
 }

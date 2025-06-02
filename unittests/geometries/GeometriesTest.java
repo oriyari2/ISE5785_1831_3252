@@ -29,7 +29,7 @@ class GeometriesTest {
     @Test
     void testFindIntersections() {
         // Geometries for testing
-        Sphere sphere = new Sphere(1, new Point(0, 0, 3));
+        Sphere sphere = new Sphere(new Point(0, 0, 3), 1d);
         Plane plane = new Plane(new Point(0, 0, 3), new Vector(0, 0, 1));
         Triangle triangle = new Triangle(
                 new Point(1, 1, 3),
@@ -66,7 +66,7 @@ class GeometriesTest {
 
         // TC12: No shape is intersected
         Geometries geometriesNoIntersection = new Geometries(
-                new Sphere(1, new Point(0, 0, -3)), // behind ray
+                new Sphere( new Point(0, 0, -3), 1d), // behind ray
                 new Plane(new Point(0, 0, -5), new Vector(0, 1, 0)), // parallel
                 new Polygon( // behind ray
                         new Point(1, 1, -3),
@@ -80,7 +80,7 @@ class GeometriesTest {
 
         // TC13: Only one shape is intersected
         Geometries oneHitGeometries = new Geometries(
-                new Sphere(1, new Point(0, 0, -3)), // no intersection
+                new Sphere(new Point(0, 0, -3), 1d), // no intersection
                 triangle // 1 intersection
         );
         assertEquals(1, oneHitGeometries.findIntersections(ray).size(),

@@ -61,8 +61,5 @@ public class Cylinder extends Tube {
         // On side surface (delegate to Tube)
         return super.getNormal(point);
     }
-    @Override
-    public List<Point> findIntersections(Ray ray) {
-        return null;
-    }
-    }
+
+}

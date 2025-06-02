@@ -1,5 +1,7 @@
 package primitives;
 
+import geometries.Intersectable;
+
 import java.util.List;
 
 import static primitives.Util.alignZero;
@@ -62,28 +64,44 @@ public final class Ray {
     }
     /**
      * Finds the closest point to the head from a list of points.
-     * @param points the list of points
+     *
+     * @param intersections the list of points
      * @return the closest point to the head
      */
-    public Point findClosestPoint(List<Point> points)
-    {
-        // Check if the list is null or empty
-        if (points == null || points.isEmpty()) return null;
-        // Initialize the closest point to the first point in the list
-        Point closestPoint = points.get(0);
-        // Calculate the squared distance from the head to the first point
-        double minDistance = head.distanceSquared(closestPoint);
-        // Iterate through the rest of the points to find the closest one
-        for (int i = 1; i < points.size(); i++) {
-            double distance = head.distanceSquared(points.get(i));
-            // If the current point is closer, update the closest point and distance
+    public Intersectable.Intersection findClosestIntersection(List<Intersectable.Intersection> intersections) {
+        if (intersections == null || intersections.isEmpty()) return null;
+
+        Intersectable.Intersection closest = intersections.get(0);
+        double minDistance = head.distanceSquared(closest.point);
+
+        for (int i = 1; i < intersections.size(); i++) {
+            double distance = head.distanceSquared(intersections.get(i).point);
             if (distance < minDistance) {
                 minDistance = distance;
-                closestPoint = points.get(i);
+                closest = intersections.get(i);
             }
         }
-        return closestPoint;
+
+        return closest;
     }
+
+
+    /**
+     * Finds the closest point to the head from a list of points.
+     *
+     * @param points the list of points
+     * @return the closest point to the head, or null if the list is empty or null
+     */
+    public Point findClosestPoint(List<Point> points) {
+        Intersectable.Intersection closest = points == null || points.isEmpty()
+                ? null
+                : findClosestIntersection(
+                points.stream().map(p -> new Intersectable.Intersection(null, p)).toList());
+
+        return closest == null ? null : closest.point;
+    }
+
+
 }
 
 

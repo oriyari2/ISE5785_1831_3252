@@ -65,13 +65,13 @@ class RenderTests {
                 .add(// center
                         new Sphere(new Point(0, 0, -100), 50),
                         // up left
-                        new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100)) //
+                        new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100))
                                 .setEmission(new Color(GREEN)),
                         // down left
-                        new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100)) //
+                        new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100))
                                 .setEmission(new Color(RED)),
                         // down right
-                        new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100)) //
+                        new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100))
                                 .setEmission(new Color(BLUE)));
 
         camera //

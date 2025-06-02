@@ -47,19 +47,19 @@ public class CameraIntersectionsIntegrationTests {
     @Test
     public void cameraRaySphereIntegration() {
         // TC01: Small sphere directly in front of camera, expect 2 hits
-        assertIntersectionCount(2, camOrigin, new Sphere(1.0, new Point(0, 0, -3)));
+        assertIntersectionCount(2, camOrigin, new Sphere(new Point(0, 0, -3), 1.0));
 
         // TC02: Larger sphere enclosing the view plane, expect 18 hits
-        assertIntersectionCount(18, camOffset, new Sphere(2.6, new Point(0, 0, -2.5)));
+        assertIntersectionCount(18, camOffset, new Sphere(new Point(0, 0, -2.5), 2.6));
 
         // TC03: Medium sphere, expect 10 hits
-        assertIntersectionCount(10, camOffset, new Sphere(1.9, new Point(0, 0, -2)));
+        assertIntersectionCount(10, camOffset, new Sphere(new Point(0, 0, -2), 1.9));
 
         // TC04: Camera inside large sphere, expect 9 hits
-        assertIntersectionCount(9, camOffset, new Sphere(4.1, new Point(0, 0, -1)));
+        assertIntersectionCount(9, camOffset, new Sphere(new Point(0, 0, -1), 4.1));
 
         // TC05: Sphere behind camera, expect 0 hits
-        assertIntersectionCount(0, camOrigin, new Sphere(0.5, new Point(0, 0, 1)));
+        assertIntersectionCount(0, camOrigin, new Sphere(new Point(0, 0, 1), 0.5));
     }
 
     /// Test camera-ray intersection with various planes

@@ -35,7 +35,7 @@ class RayTest {
     }
 
     @Test
-    void testFindClosestPoint() {
+    void testFindClosestIntersection() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Closest point is in the middle
         Ray ray3 = new Ray(new Point(1, 2, 3), new Vector(0, 0, 1));

@@ -84,36 +84,77 @@ public class Polygon extends Geometry {
     }
 
     @Override
-    protected List<Intersection> calculateIntersectionsHelper(Ray ray)
-    {
-        List<Intersection> planeIntersections = plane.calculateIntersections(ray);
-        if (planeIntersections == null) return null;  // No intersection with the plane
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        // Intersect the ray with the polygon's plane
+        List<Intersection> planeIntersections = plane.calculateIntersectionsHelper(ray);
+        if (planeIntersections == null) return null;
 
-        Intersection p = planeIntersections.get(0);  // Get the intersection point with the plane
+        Point p = planeIntersections.get(0).point; // intersection point with the plane
+        Vector n = plane.getNormal(null);           // polygon's normal
+        int size = vertices.size();
 
-        Point p0 = ray.getHead();
-        Vector dir = ray.getDirection();
-
-        // Create vectors from the first vertex to the intersection point
-        Vector v1p = vertices.get(0).subtract(p0);
-        Vector v2p = vertices.get(1).subtract(p0);
-        Vector v3p = vertices.get(2).subtract(p0);
-
-        // Normals to triangle's edges
-        Vector n1 = v1p.crossProduct(v2p).normalize();
-        Vector n2 = v2p.crossProduct(v3p).normalize();
-        Vector n3 = v3p.crossProduct(v1p).normalize();
-
-        // Check if the intersection point is on the same side of all edges
-        double s1 = alignZero(dir.dotProduct(n1));
-        double s2 = alignZero(dir.dotProduct(n2));
-        double s3 = alignZero(dir.dotProduct(n3));
-
-        // If all have the same sign (all positive or all negative), the point is inside
-        if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
-            return List.of(new Intersection(this, p));  // Return the intersection point wrapped in an Intersection object
+        // If the ray starts exactly on the polygon — no intersection
+        if (ray.getHead().equals(p)) {
+            return null;
         }
 
-        return null;  // No valid intersection within the polygon
+        Boolean positive = null; // to track orientation consistency
+
+        for (int i = 0; i < size; i++) {
+            Point vCurrent = vertices.get(i);
+            Point vNext = vertices.get((i + 1) % size);
+
+            // Check if p equals vCurrent to avoid zero vector creation
+            if (p.equals(vCurrent)) {
+                // Intersection is exactly on a vertex — no intersection by requirement
+                return null;
+            }
+
+            Vector edge = vNext.subtract(vCurrent);
+
+            // Now safe to subtract because p != vCurrent
+            Vector edgeToP;
+            try {
+                edgeToP = p.subtract(vCurrent);
+            } catch (IllegalArgumentException e) {
+                // subtract resulted in zero vector — no intersection
+                return null;
+            }
+
+            // Check for zero edge vector (should never be zero in a valid polygon)
+            if (Util.isZero(edge.length())) {
+                return null; // invalid polygon edge
+            }
+
+            Vector cross;
+            try {
+                cross = edge.crossProduct(edgeToP);
+            } catch (IllegalArgumentException e) {
+                // crossProduct resulted in zero vector - no intersection
+                return null;
+            }
+
+            // If cross is zero vector, point lies on the edge line
+            if (Util.isZero(cross.length())) {
+                double t = edgeToP.dotProduct(edge) / edge.lengthSquared();
+                if (t >= 0 && t <= 1) {
+                    // point is exactly on an edge — no intersection
+                    return null;
+                }
+            }
+
+            double sign = cross.dotProduct(n);
+
+            if (positive == null) {
+                positive = (sign > 0) || Util.isZero(sign);
+            } else if (((sign > 0) || Util.isZero(sign)) != positive) {
+                // point is outside polygon
+                return null;
+            }
+        }
+
+        // If all tests passed — point is inside polygon, return intersection object
+        return List.of(new Intersection(this, p));
     }
+
 }

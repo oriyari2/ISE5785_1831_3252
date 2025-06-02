@@ -100,8 +100,10 @@ public class SceneBuilderXML {
      * @return a {@link Color} instance
      */
     private static Color parseColor(String colorStr) {
-        return new Color(parseDouble3(colorStr));
+        Double3 rgb = parseDouble3(colorStr);
+        return new Color(rgb.d1(), rgb.d2(), rgb.d3());
     }
+
 
     /**
      * Parses a {@link Point} object from a space-separated string.
@@ -141,7 +143,7 @@ public class SceneBuilderXML {
     private static Sphere parseSphere(Element element) {
         Point center = parsePoint(getRequiredAttribute(element, "center"));
         double radius = Double.parseDouble(getRequiredAttribute(element, "radius"));
-        return new Sphere(radius, center);
+        return new Sphere(center, radius);
     }
 
     /**

@@ -58,34 +58,24 @@ public abstract class Intersectable {
     }
 
 
+
+    /**
+     * Template method that delegates the intersection calculation to concrete subclasses.
+     * Returns a list of Intersection objects (point + geometry).
+     *
+     * @param ray the ray to test for intersections
+     * @return list of intersection objects or null if none found
+     */
+    public final List<Intersection> calculateIntersections(Ray ray) {
+        List<Intersection> intersections = calculateIntersectionsHelper(ray);
+        return intersections == null || intersections.isEmpty() ? null : intersections;
+    }
+
     /**
      * Calculates the intersections of a ray with the geometry and returns them as Intersection objects.
      *
      * @param ray The ray to find intersections with.
      * @return A list of Intersection objects, or an empty list if there are no intersections.
      */
-    protected List<Intersection> calculateIntersectionsHelper(Ray ray)
-    {
-        List<Point> intersections = findIntersections(ray);
-        if (intersections == null || intersections.isEmpty()) {
-            return List.of(); // Return an empty list if no intersections found
-        }
-
-        // Create Intersection objects for each intersection point
-        return intersections.stream()
-                .map(point -> new Intersection((Geometry)this, point))
-                .toList();
-    }
-
-    public final List<Intersection> calculateIntersections(Ray ray) {
-        List<Intersection> intersections = calculateIntersectionsHelper(ray);
-        if (intersections.isEmpty()) {
-            return null; // Return an empty list if no intersections found
-        }
-        return intersections;
-    }
-
-
-
-
+    protected abstract List<Intersection> calculateIntersectionsHelper(Ray ray);
 }

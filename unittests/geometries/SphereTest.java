@@ -26,7 +26,7 @@ class SphereTest {
     void testGetNormal() {
         // ============ Equivalence Partitions Tests ==============
         // TC01: Normal at a point on the sphere surface (radius = 1, center at (0, 0, 0))
-        Sphere sphere = new Sphere(1, new Point(0, 0, 0));
+        Sphere sphere = new Sphere(new Point(0, 0, 0), 1d);
 
         Vector expectedNormal = p100.subtract(new Point(0, 0, 0)).normalize();
         assertEquals(expectedNormal, sphere.getNormal(p100),
@@ -50,7 +50,7 @@ class SphereTest {
      */
     @Test
     public void testFindIntersections() {
-        Sphere sphere = new Sphere(1d, p100);
+        Sphere sphere = new Sphere(p100, 1d);
         final Point gp1 = new Point(0.0651530771650466, 0.355051025721682, 0);
         final Point gp2 = new Point(1.53484692283495, 0.844948974278318, 0);
         final var exp = List.of(gp1, gp2);
