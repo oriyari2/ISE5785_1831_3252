@@ -1,4 +1,3 @@
-
 package renderer;
 
 import static java.awt.Color.BLUE;
