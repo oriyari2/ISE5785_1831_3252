@@ -1,6 +1,10 @@
 package geometries;
+import lighting.LightSource;
+import primitives.Material;
 import primitives.Ray;
 import primitives.Point;
+import primitives.Vector;
+
 import java.util.List;
 
 /**
@@ -28,6 +32,13 @@ public abstract class Intersectable {
     public static class Intersection {
         public final Geometry geometry;
         public final Point point;
+        public final Material material = new Material();
+        public Vector rayDirection;
+        public Vector normal;
+        public double rayScale;
+        public LightSource lightSource;
+        public Vector lightDirection;
+        public double lightScale;
 
         /**
          * Constructs an Intersection object with the specified geometry and point.
