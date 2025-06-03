@@ -10,6 +10,8 @@ import lighting.*;
 import primitives.*;
 import scene.*;
 
+import java.util.List;
+
 /**
  * Test rendering a basic image
  * @author Dan Zilberstein
@@ -199,6 +201,31 @@ class LightsTests {
                 .build() //
                 .renderImage() //
                 .writeToImage("lightTrianglesSpotSharp");
+    }
+
+    /**Our methods**/
+    /// Test rendering triangles with dramatic and colorful multiple light sources
+    @Test
+    void trianglesMultipleLights() {
+        scene2.geometries.add(triangle1, triangle2);
+
+        scene2.lights.addAll(List.of(
+                // Neutral white directional light from the front
+                new DirectionalLight(new Color(500, 500, 500), new Vector(0, 0, -1)),
+
+                // Greenish point light from left-top
+                new PointLight(new Color(0, 600, 200), new Point(-80, 80, -50))
+                        .setKl(0.001).setKq(0.0002),
+
+                // Reddish spotlight from bottom-right
+                new SpotLight(new Color(800, 200, 200), new Point(100, -100, 0), new Vector(-2, 2, -2))
+                        .setKl(0.001).setKq(0.0001)/*.setNarrowBeam(12)*/
+        ));
+
+        camera2.setResolution(600, 600) //
+                .build() //
+                .renderImage() //
+                .writeToImage("enhancedLightTrianglesMultiple");
     }
 
 }
