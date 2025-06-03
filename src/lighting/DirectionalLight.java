@@ -4,7 +4,8 @@ import primitives.*;
 
 /**
  * A directional light that has a constant intensity and direction.
- * It simulates light from a very far source, like the sun.
+ * It simulates light from a very distant source, like the sun.
+ * The light rays are considered parallel and the intensity is uniform.
  */
 public class DirectionalLight extends Light implements LightSource {
     private final Vector direction;
@@ -22,13 +23,14 @@ public class DirectionalLight extends Light implements LightSource {
 
     @Override
     public Vector getL(Point p) {
-        // Return normalized vector towards the light (opposite direction)
+        // Return direction FROM point TO light source
+        // For directional light, this is opposite to the light's direction
         return direction.scale(-1);
     }
 
     @Override
     public Color getIntensity(Point p) {
-        // No attenuation; constant intensity
+        // No attenuation with distance for directional light; intensity is constant.
         return intensity;
     }
 }
