@@ -181,7 +181,7 @@ class LightsTests {
         scene1.geometries.add(sphere);
         scene1.lights
                 .add(new SpotLight(sphereLightColor, sphereLightPosition, new Vector(1, 1, -0.5)) //
-                        .setKl(0.001).setKq(0.00004)/*.setNarrowBeam(10)*/);
+                        .setKl(0.001).setKq(0.00004).setBeamExponent(10));
 
         camera1.setResolution(500, 500) //
                 .build() //
@@ -194,7 +194,7 @@ class LightsTests {
     void trianglesSpotSharp() {
         scene2.geometries.add(triangle1, triangle2);
         scene2.lights.add(new SpotLight(trianglesLightColor, trianglesLightPosition, trianglesLightDirection) //
-                .setKl(0.001).setKq(0.00004)/*.setNarrowBeam(10)*/);
+                .setKl(0.001).setKq(0.00004).setBeamExponent(10));
 
         camera2.setResolution(500, 500) //
                 .build() //
@@ -226,5 +226,30 @@ class LightsTests {
                 .renderImage() //
                 .writeToImage("enhancedLightTrianglesMultiple");
     }
+
+    /// Test rendering a sphere with strong and distinct multiple light sources
+    @Test
+    void sphereMultipleLights() {
+        scene1.geometries.add(sphere);
+
+        scene1.lights.addAll(List.of(
+                // Warm directional light from behind-right
+                new DirectionalLight(new Color(300, 150, 0), new Vector(1, -1, -1)),
+
+                // Cool point light from the left side
+                new PointLight(new Color(0, 300, 800), new Point(-100, 0, 50))
+                        .setKl(0.0005).setKq(0.0001),
+
+                // Spotlight from top-right with sharp beam
+                new SpotLight(new Color(700, 300, 300), new Point(80, 80, 100), new Vector(-1, -1, -2))
+                        .setKl(0.001).setKq(0.00005)/*.setNarrowBeam(15)*/
+        ));
+
+        camera1.setResolution(600, 600) //
+                .build() //
+                .renderImage() //
+                .writeToImage("enhancedLightSphereMultiple");
+    }
+
 
 }
