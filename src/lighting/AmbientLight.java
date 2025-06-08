@@ -22,4 +22,5 @@ public class AmbientLight extends Light {
     public AmbientLight(Color IA) {
         super(IA);
     }
+
 }

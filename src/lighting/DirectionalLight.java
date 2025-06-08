@@ -29,6 +29,12 @@ public class DirectionalLight extends Light implements LightSource {
     }
 
     @Override
+    public double getDistance(Point point) {
+        // Directional light is considered at infinite distance
+        return Double.POSITIVE_INFINITY;
+    }
+
+    @Override
     public Color getIntensity(Point p) {
         // No attenuation with distance for directional light; intensity is constant.
         return intensity;

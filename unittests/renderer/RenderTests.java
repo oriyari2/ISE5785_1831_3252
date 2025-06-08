@@ -161,4 +161,11 @@ class RenderTests {
         // Save the rendered image to a file
         camera.writeToImage("basicRenderXmlOutput");
     }
+
+
+
+
+
+
+
 }

@@ -92,6 +92,14 @@ public record Double3(double d1, double d2, double d3) {
     public boolean lowerThan(double k) { return d1 < k && d2 < k && d3 < k; }
 
     /**
+     * Checks whether all the numbers are greater than a test number
+     * @param  k the test number
+     * @return   true if all the numbers are greater than k, false otherwise
+     */
+    public boolean greaterThan(double k) { return d1 > k && d2 > k && d3 > k; }
+
+
+    /**
      * Checks whether all the numbers are lower than three numbers in another triad
      * @param  other other triad
      * @return       true if all the numbers are less that appropriate numbers in

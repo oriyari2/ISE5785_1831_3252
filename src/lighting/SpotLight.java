@@ -116,11 +116,6 @@ public class SpotLight extends PointLight {
         // Base intensity from PointLight (includes attenuation)
         Color intensityFromPointLight = super.getIntensity(p);
 
-        // If base intensity is zero (e.g., due to distance), return black
-        if (intensityFromPointLight.equals(Color.BLACK)) {
-            return Color.BLACK;
-        }
-
         // Apply beam concentration using the exponent
         double beamFactor = (this.beamExponent == 1.0) ?
                 cosAlpha :

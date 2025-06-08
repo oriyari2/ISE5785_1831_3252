@@ -30,6 +30,12 @@ public class PointLight extends Light implements LightSource {
     }
 
     @Override
+    public double getDistance(Point point) {
+        // Return the distance between the point and the light position
+        return position.distance(point);
+    }
+
+    @Override
     public Color getIntensity(Point p) {
         // Compute attenuation based on distance and scale the light's color
         double attenuation = getAttenuation(p);
