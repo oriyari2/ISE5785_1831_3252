@@ -1,6 +1,17 @@
 package primitives;
 
 public class Material {
+    /**
+     * The transparency coefficient (kT) represents how much light is transmitted through the material.
+     * It is used to simulate materials like glass or water that allow light to pass through.
+     */
+    public Double3 kT = Double3.ZERO; // The transparency coefficient (kT) represents how much light is transmitted through the material.
+
+    /**
+     * The reflection coefficient (kR) represents how much light is reflected by the material.
+     * It is used to simulate materials like mirrors or shiny surfaces that reflect light.
+     */
+    public Double3 kR = Double3.ZERO; // The reflection coefficient (kR) represents how much light is reflected by the material.
 
     // Material class represents the properties of a material in a 3D scene.
     public Double3 kA = Double3.ONE;
@@ -95,6 +106,28 @@ public class Material {
     public Material setnSh(int nSh) {
         this.nSh = nSh;
         return this;
+    }
+
+    /**
+     * Sets the transparency coefficient (kT) of the material.
+     * The transparency coefficient represents how much light is transmitted through the material.
+     * It is used to simulate materials like glass or water that allow light to pass through.
+     *
+     * @param kT The transparency coefficient as a {@link Double3} object.
+     */
+    public void setkT(Double3 kT) {
+        this.kT = kT;
+    }
+
+    /**
+     * Sets the reflection coefficient (kR) of the material.
+     * The reflection coefficient represents how much light is reflected by the material.
+     * It is used to simulate materials like mirrors or shiny surfaces that reflect light.
+     *
+     * @param kR The reflection coefficient as a {@link Double3} object.
+     */
+    public void setkR(Double3 kR) {
+        this.kR = kR;
     }
 
 
