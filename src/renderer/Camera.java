@@ -104,6 +104,10 @@ public class Camera implements Cloneable {
         Ray ray = constructRay(nX, nY, j, i);
         // Perform ray tracing and set the pixel color in the image writer
         Color color = rayTracer.traceRay(ray);
+        if (color == null) {
+            // If the color is null, set it to black
+            color = Color.BLACK;
+        }
         // Set the pixel color in the image writer
         imageWriter.writePixel(j, i, color);
     }

@@ -103,7 +103,7 @@ public class Material {
      * @param nSh The shininess coefficient as an integer.
      * @return The current Material instance for method chaining.
      */
-    public Material setnSh(int nSh) {
+    public Material setShininess(int nSh) {
         this.nSh = nSh;
         return this;
     }
@@ -115,8 +115,9 @@ public class Material {
      *
      * @param kT The transparency coefficient as a {@link Double3} object.
      */
-    public void setkT(Double3 kT) {
+    public Material setkT(Double3 kT) {
         this.kT = kT;
+        return this;
     }
 
     /**
@@ -126,8 +127,33 @@ public class Material {
      *
      * @param kR The reflection coefficient as a {@link Double3} object.
      */
-    public void setkR(Double3 kR) {
+    public Material setkR(Double3 kR) {
         this.kR = kR;
+        return this;
+    }
+
+    /**
+     * Sets the transparency coefficient (kT) of the material.
+     * The transparency coefficient represents how much light is transmitted through the material.
+     * It is used to simulate materials like glass or water that allow light to pass through.
+     *
+     * @param kT The transparency coefficient as a double value.
+     */
+    public Material setkT(double kT) {
+        this.kT = new Double3(kT);
+        return this;
+    }
+
+    /**
+     * Sets the reflection coefficient (kR) of the material.
+     * The reflection coefficient represents how much light is reflected by the material.
+     * It is used to simulate materials like mirrors or shiny surfaces that reflect light.
+     *
+     * @param kR The reflection coefficient as a {@link Double3} object.
+     */
+    public Material setkR(double kR) {
+        this.kR = new Double3(kR);
+        return this;
     }
 
 

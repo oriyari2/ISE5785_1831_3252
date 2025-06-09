@@ -15,6 +15,7 @@ public final class Ray {
 
     /** The normalized direction vector of the ray */
     private final Vector direction;
+    private static final double DELTA = 0.1; // you can adjust this value
 
     /**
      * Constructor to initialize Ray with head point and direction vector.
@@ -101,6 +102,30 @@ public final class Ray {
         return closest == null ? null : closest.point;
     }
 
+    /**
+     * Constructor to initialize Ray with head point, direction vector, and a normal vector.
+     * This constructor ensures that the ray is offset slightly from the surface defined by the normal.
+     *
+     * @param head the head point of the ray
+     * @param direction the direction vector of the ray
+     * @param normal the normal vector of the surface
+     */
+    public Ray(Point head, Vector direction, Vector normal) {
+        this.direction = direction.normalize();
+        double dot = direction.dotProduct(normal);
+
+        // If dot == 0, direction is orthogonal to normal, shift arbitrarily along normal
+        Vector delta = normal.scale(
+                isZero(dot) ? DELTA : (dot > 0 ? DELTA : -DELTA)
+        );
+
+        this.head = head.add(delta);
+    }
+    // Utility method to check for zero with precision threshold
+    private static boolean isZero(double val) {
+        final double EPSILON = 1e-10;
+        return Math.abs(val) < EPSILON;
+    }
 
 }
 
