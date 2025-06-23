@@ -2,12 +2,17 @@ package renderer;
 
 import static java.awt.Color.*;
 
+import geometries.Polygon;
 import org.junit.jupiter.api.Test;
 
 import geometries.*;
 import lighting.*;
 import primitives.*;
+import primitives.Color;
+import primitives.Point;
 import scene.Scene;
+
+import java.awt.*;
 
 /**
  * Tests for reflection and transparency functionality, test for partial
@@ -108,6 +113,7 @@ class ReflectionRefractionTests {
                 .writeToImage("refractionShadow");
     }
 
+    /** Produce a picture of a grand piano on stage */
     @Test
     void grandPianoOnStageScene() {
 
@@ -243,6 +249,11 @@ class ReflectionRefractionTests {
 
         //PIano legs
 
+//        List<Sphere> legs = List.of(
+//                new Sphere(new Point(-500, -200, -300), 40),
+//                new Sphere(new Point(500, -200, -300), 40),
+//                new Sphere(new Point(0, -200, -700), 40)
+//        );
         for(int i = 0; i < 15; i++) {
             scene.geometries.add(
                     new Sphere(new Point(450, -200 + i * 10, -300), 35)

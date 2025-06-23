@@ -163,9 +163,4 @@ class RenderTests {
     }
 
 
-
-
-
-
-
 }
