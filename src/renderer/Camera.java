@@ -4,7 +4,7 @@ import primitives.*;
 import scene.Scene;
 import java.util.stream.IntStream;
 import java.util.LinkedList;
-
+import java.util.List;
 import java.util.MissingResourceException;
 
 import static primitives.Util.alignZero;
@@ -42,13 +42,37 @@ public class Camera implements Cloneable {
      */
     private double           printInterval    = 0;
     /**
-      * Pixel manager for supporting:
+     * Pixel manager for supporting:
      * <ul>
-          * <li>multi-threading</li>
-          * <li>debug print of progress percentage in Console window/tab</li>
+     * <li>multi-threading</li>
+     * <li>debug print of progress percentage in Console window/tab</li>
      *</ul>
      */
     private PixelManager pixelManager;
+
+    // --- Anti-Aliasing additions ---
+    /**
+     * The super-sampling level per dimension.
+     * A value of 1 means 1x1 rays per pixel (no anti-aliasing).
+     * A value of N means N x N rays per pixel.
+     */
+    private int superSamplingLevel = 1; // Default to 1 (no AA)
+
+    /**
+     * Enum to define the sampling method for anti-aliasing.
+     * CENTER: A single ray at the pixel center (default, no super-sampling).
+     * GRID: Uniform grid sampling within the pixel area.
+     */
+    public enum SamplingMethod {
+        CENTER, // A single ray at the exact center of the pixel (no super-sampling benefit)
+        GRID    // Uniform grid sampling within the pixel area
+    }
+
+    /** The sampling method to use for anti-aliasing */
+    private SamplingMethod samplingMethod = SamplingMethod.CENTER; // Default to CENTER
+
+    /** Whether to explicitly include the original central ray in the anti-aliasing sample set. */
+    private boolean includeOriginalRayInAA = true; // Default to true
 
 
     /**
@@ -69,6 +93,8 @@ public class Camera implements Cloneable {
 
     /**
      * Constructs a ray from the camera to a specific point on the view plane.
+     * This method always constructs a single ray to the center of the specified pixel.
+     * This is useful for debugging or when anti-aliasing is not desired for a specific ray.
      *
      * @param nX The number of pixels along the x-axis (width).
      * @param nY The number of pixels along the y-axis (height).
@@ -102,10 +128,79 @@ public class Camera implements Cloneable {
         return new Ray(p0, pIJ.subtract(p0));
     }
 
+
     /**
-     *  This function renders image's pixel color map from the scene
-     *  included in the ray tracer object
-     *  @return the camera object itself
+     * Private helper method to construct a single ray from the camera
+     * to a specific point in the view plane, relative to the view plane center.
+     * This is used internally by constructRays for each sub-pixel.
+     *
+     * @param xOffset The horizontal offset from the view plane center.
+     * @param yOffset The vertical offset from the view plane center.
+     * @return A Ray object representing the ray from the camera to the target point.
+     */
+    private Ray constructSingleRayInternal(double xOffset, double yOffset) {
+        // Start from the center of the view plane
+        Point pIJ = pcenter;
+
+        // Adjust the point horizontally by scaling the rightward vector
+        if (!isZero(xOffset)) {
+            pIJ = pIJ.add(vRight.scale(xOffset));
+        }
+
+        // Adjust the point vertically by scaling the upward vector (negative for correct orientation)
+        if (!isZero(yOffset)) {
+            pIJ = pIJ.add(vUp.scale(-yOffset));
+        }
+
+        // Return a ray from the camera position to the calculated point on the view plane
+        return new Ray(p0, pIJ.subtract(p0));
+    }
+
+
+    /**
+     * Constructs a list of rays for a given pixel, leveraging the TargetArea class
+     * for generating sample points for anti-aliasing.
+     *
+     * @param nX The total number of pixels along the x-axis (image width).
+     * @param nY The total number of pixels along the y-axis (image height).
+     * @param j  The pixel index along the x-axis (column).
+     * @param i  The pixel index along the y-axis (row).
+     * @return A List of Ray objects to be traced for anti-aliasing.
+     */
+    public List<Ray> constructRays(int nX, int nY, int j, int i) {
+        List<Ray> rays = new LinkedList<>();
+
+        // Calculate the pixel's dimensions
+        double pixelWidth = width / nX;
+        double pixelHeight = height / nY;
+
+        // Calculate the center of the current pixel relative to the view plane center
+        double xJ_pixelCenter = (j - (nX - 1) / 2.0) * pixelWidth;
+        double yI_pixelCenter = (i - (nY - 1) / 2.0) * pixelHeight;
+
+        // Calculate the 3D center point of the current pixel on the view plane
+        Point pixel3DCenter = constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter).getPoint(distance);
+
+        // Create a TargetArea instance for this pixel
+        // The target area is defined on the view plane, perpendicular to vTo.
+        TargetArea pixelTargetArea = new TargetArea(pixel3DCenter, vTo, pixelWidth, pixelHeight);
+
+        // Generate sample 3D points within this pixel's target area using the TargetArea class
+        List<Point> samplePoints = pixelTargetArea.generateSamplePoints(
+                superSamplingLevel, samplingMethod, includeOriginalRayInAA);
+
+        // Construct rays from camera origin (p0) to each sample point
+        for (Point samplePoint : samplePoints) {
+            rays.add(new Ray(p0, samplePoint.subtract(p0)));
+        }
+
+        return rays;
+    }
+
+    /**
+     * This function renders image's pixel color map from the scene
+     * included in the ray tracer object
+     * @return the camera object itself
      */
     public Camera renderImage() {
         pixelManager = new PixelManager(nY, nX, printInterval);
@@ -117,24 +212,35 @@ public class Camera implements Cloneable {
     }
 
     /**
-     * Casts a ray from the camera to a specific pixel on the view plane.
+     * Casts multiple rays for a given pixel, averages their colors, and sets the pixel.
+     * This method incorporates the anti-aliasing logic.
      *
-     * @param j
-     * @param i
+     * @param j The pixel column index.
+     * @param i The pixel row index.
      */
-    private void castRay(int j, int i) {
-        // Calculate the size of each pixel in the view plane
-        Ray ray = constructRay(nX, nY, j, i);
-        // Perform ray tracing and set the pixel color in the image writer
-        Color color = rayTracer.traceRay(ray);
-        if (color == null) {
-            // If the color is null, set it to black
-            color = Color.BLACK;
+    private void castRaysAndAverage(int j, int i) {
+        // Construct all rays for the current pixel (including sub-pixel rays for AA)
+        List<Ray> rays = constructRays(nX, nY, j, i);
+        Color finalColor = Color.BLACK; // Initialize accumulated color to black
+
+        // Trace each ray and sum their colors
+        for (Ray ray : rays) {
+            Color color = rayTracer.traceRay(ray);
+            if (color == null) {
+                // If tracing a ray yields no color (e.g., missed all objects), treat as black
+                color = Color.BLACK;
+            }
+            finalColor = finalColor.add(color);
         }
-        // Set the pixel color in the image writer
-        imageWriter.writePixel(j, i, color);
+
+        // Average the accumulated color by the number of rays traced for this pixel
+        finalColor = finalColor.reduce(rays.size());
+
+        // Write the averaged color to the image writer
+        imageWriter.writePixel(j, i, finalColor);
         pixelManager.pixelDone();
     }
+
 
     /**
      * Prints a grid on the image.
@@ -168,36 +274,41 @@ public class Camera implements Cloneable {
     }
 
     /**
-     *  Render image using multi-threading by parallel streaming
-     *  @return the camera object itself
+     * Render image using multi-threading by parallel streaming.
+     * Calls the new {@code castRaysAndAverage} method for each pixel.
+     * @return the camera object itself
      */
     private Camera renderImageStream() {
         IntStream.range(0, nY).parallel()
                 .forEach(i -> IntStream.range(0, nX).parallel()
-                        .forEach(j -> castRay(j, i)));
+                        .forEach(j -> castRaysAndAverage(j, i)));
         return this;
     }
     /**
-     *  Render image without multi-threading
-     *  @return the camera object itself
+     * Render image without multi-threading.
+     * Calls the new {@code castRaysAndAverage} method for each pixel.
+     * @return the camera object itself
      */
     private Camera renderImageNoThreads() {
         for (int i = 0; i < nY; ++i)
             for (int j = 0; j < nX; ++j)
-                castRay(j, i);
+                castRaysAndAverage(j, i);
         return this;
     }
     /**
-     * Render image using multi-threading by creating and running raw threads
+     * Render image using multi-threading by creating and running raw threads.
+     * Calls the new {@code castRaysAndAverage} method for each pixel.
      * @return the camera object itself
      */
     private Camera renderImageRawThreads() {
         var threads = new LinkedList<Thread>();
-        while (threadsCount-- > 0)
+        // Ensure threadsCount is not negative due to decrement in loop condition
+        int currentThreads = threadsCount; // Store initial value
+        while (currentThreads-- > 0)
             threads.add(new Thread(() -> {
                 PixelManager.Pixel pixel;
                 while ((pixel = pixelManager.nextPixel()) != null)
-                    castRay(pixel.col(), pixel.row());
+                    castRaysAndAverage(pixel.col(), pixel.row());
             }));
         for (var thread : threads) thread.start();
         try {
@@ -224,8 +335,8 @@ public class Camera implements Cloneable {
          * @throws IllegalArgumentException if the direction vectors are not orthogonal.
          */
         public Builder setDirection(Vector vTo, Vector vUp) {
-            // Ensure the direction vectors are orthogonal
-            if (!isZero(vTo.dotProduct(vUp))) {
+            // Ensure the direction vectors are orthogonal using the new static method in Vector
+            if (!Vector.isOrthogonal(vTo, vUp)) {
                 throw new IllegalArgumentException("Direction vectors must be orthogonal");
             }
             this.target = null; // Will be calculated in validation
@@ -312,23 +423,150 @@ public class Camera implements Cloneable {
             camera.height = height;
             return this;
         }
+
         /**
-         * Sets the ray tracer for rendering the scene.
+         * Sets the ray tracer for rendering the scene based on the scene and tracer type.
+         * This method is kept for backward compatibility with existing tests.
+         * Internally creates a SimpleRayTracer.
          *
          * @param scene      The scene to be rendered.
-         * @param tracerType The type of ray tracer to use.
+         * @param tracerType The type of ray tracer to use (currently only SIMPLE is directly supported here).
          * @return The Builder instance.
+         * @throws IllegalArgumentException if scene is null or tracerType is not SIMPLE.
          */
-
-        public Builder setRayTracer(Scene scene, RayTracerType tracerType)
-        {
-            // Set the ray tracer for rendering the scene
-            if(tracerType == RayTracerType.SIMPLE)
+        public Builder setRayTracer(Scene scene, RayTracerType tracerType) {
+            if (scene == null) {
+                throw new IllegalArgumentException("Scene cannot be null when setting ray tracer by type.");
+            }
+            if (tracerType == RayTracerType.SIMPLE) {
                 camera.rayTracer = new SimpleRayTracer(scene);
-            else
-                camera.rayTracer = null;
+            } else {
+                // You can add logic for other tracer types here if you implement them,
+                // or throw an exception if unsupported.
+                throw new IllegalArgumentException("Unsupported RayTracerType: " + tracerType);
+            }
             return this;
         }
+
+        /**
+         * Sets the ray tracer for rendering the scene.
+         * This method accepts an already instantiated RayTracerBase object,
+         * decoupling the Camera.Builder from the concrete implementation details
+         * of different ray tracers. This is the preferred method for new code.
+         *
+         * @param rayTracer The instantiated RayTracerBase object to use.
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the rayTracer is null.
+         */
+        public Builder setRayTracer(RayTracerBase rayTracer) {
+            if (rayTracer == null) {
+                throw new IllegalArgumentException("RayTracer cannot be null");
+            }
+            camera.rayTracer = rayTracer;
+            return this;
+        }
+
+        /**
+         * Sets the resolution of the view plane (number of pixels in the x and y directions).
+         *
+         * @param nx The number of pixels in the x direction.
+         * @param ny The number of pixels in the y direction.
+         * @return The Builder instance.
+         */
+        public Builder setResolution(int nx, int intny) { // Changed ny to intny to avoid name clash if any, but it's fine
+            if(alignZero(nx) <= 0 || alignZero(intny) <= 0) {
+                throw new IllegalArgumentException("Resolution must be positive");
+            }
+            camera.nX = nx;
+            camera.nY = intny;
+            // imageWriter initialization moved here, as it depends on resolution
+            // It assumes scene.name is available; if not, pass it as a parameter to setResolution
+            if (camera.rayTracer == null || camera.rayTracer.scene == null || camera.rayTracer.scene.name == null) {
+                throw new IllegalStateException("RayTracer and Scene must be set before setting resolution for ImageWriter.");
+            }
+            camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name ,nx, intny);
+            return this;
+        }
+
+
+        /**
+         * Set multi-threading <br>
+         * Parameter value meaning:
+         * <ul>
+         * <li>-2 - number of threads is number of logical processors less 2</li>
+         * <li>-1 - stream processing parallelization (implicit multi-threading) is used</li>
+         * <li>0  - multi-threading is not activated</li>
+         * <li>1 and more - literally number of threads</li>     *
+         * </ul>
+         * @param  threads number of threads
+         * @return         builder object itself
+         * */
+        public Builder setMultithreading(int threads) {
+            if (threads < -2)
+                throw new IllegalArgumentException("Multithreading parameter must be -2 or higher");
+            if (threads == -2) {
+                int cores = Runtime.getRuntime().availableProcessors() - SPARE_THREADS;
+                camera.threadsCount = cores <= 2 ? 1 : cores;
+            }
+            else
+                camera.threadsCount = threads;
+            return this;
+        }
+        /**
+         * Set debug printing interval. If it's zero - there won't be printing at all
+         * @param  interval printing interval in %
+         * @return          builder object itself
+         */
+        public Builder setDebugPrint(double interval) {
+            if (interval < 0) throw new IllegalArgumentException("interval parameter must be non-negative");
+            camera.printInterval = interval;
+            return this;
+        }
+
+        // --- Anti-Aliasing Builder methods ---
+        /**
+         * Sets the super-sampling level for anti-aliasing.
+         * A level of 1 means no super-sampling (1 ray per pixel).
+         * A level of N means N x N rays per pixel for anti-aliasing.
+         *
+         * @param level The super-sampling level (must be positive).
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the level is less than 1.
+         */
+        public Builder setSuperSamplingLevel(int level) {
+            if (level < 1) {
+                throw new IllegalArgumentException("Super-sampling level must be at least 1");
+            }
+            camera.superSamplingLevel = level;
+            return this;
+        }
+
+        /**
+         * Sets the sampling method to be used for anti-aliasing.
+         *
+         * @param method The {@link SamplingMethod} to use (e.g., CENTER, GRID).
+         * @return The Builder instance.
+         */
+        public Builder setSamplingMethod(SamplingMethod method) {
+            if (method == null) {
+                throw new IllegalArgumentException("Sampling method cannot be null");
+            }
+            camera.samplingMethod = method;
+            return this;
+        }
+
+        /**
+         * Sets whether the original central ray should be included in the anti-aliasing sample set.
+         * True means the central ray is part of the average; False means it's excluded.
+         *
+         * @param include True to include, false to exclude.
+         * @return The Builder instance.
+         */
+        public Builder setIncludeOriginalRayInAA(boolean include) {
+            camera.includeOriginalRayInAA = include;
+            return this;
+        }
+
         /**
          * Builds and returns the constructed Camera object.
          * This method ensures immutability by cloning the Camera instance.
@@ -341,11 +579,12 @@ public class Camera implements Cloneable {
                 // Clone the camera to ensure immutability
                 return (Camera) camera.clone();
             }
-            catch (MissingResourceException ignored) {
+            catch (MissingResourceException | IllegalStateException e) {
+                System.err.println("Camera build error: " + e.getMessage());
                 return null;
             }
             catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Camera cloning failed", e);
             }
         }
 
@@ -354,8 +593,9 @@ public class Camera implements Cloneable {
          *
          * @param camera The Camera object to validate.
          * @throws MissingResourceException if required parameters are missing or invalid.
+         * @throws IllegalStateException if the ImageWriter could not be initialized due to missing scene/tracer.
          */
-        private void validate(Camera camera) throws MissingResourceException {
+        private void validate(Camera camera) throws MissingResourceException, IllegalStateException {
             // Ensure the view plane size is set
             if (isZero(camera.width) || isZero(camera.height)) {
                 throw new MissingResourceException("Missing rendering data", "Camera", "View plane size is not set");
@@ -397,7 +637,8 @@ public class Camera implements Cloneable {
             }
 
             // Ensure vTo and vUp are orthogonal by recalculating vUp if necessary
-            if (!isOrthogonal(camera.vTo, camera.vUp)) {
+            // This is a robust way to ensure orthogonality if initial vUp is not perfectly orthogonal
+            if (!Vector.isOrthogonal(camera.vTo, camera.vUp)) { // Using the new static method
                 camera.vUp = camera.vTo.crossProduct(camera.vUp).crossProduct(camera.vTo).normalize();
             }
 
@@ -407,70 +648,17 @@ public class Camera implements Cloneable {
             // Calculate the center of the view plane based on the camera position and vTo
             camera.pcenter = camera.p0.add(camera.vTo.scale(camera.distance));
 
-            // Clear the target to avoid retaining unnecessary state
+            // Ensure RayTracer is set
+            if (camera.rayTracer == null) {
+                throw new MissingResourceException("Missing rendering data", "Camera", "RayTracer is not set");
+            }
+            // ImageWriter must be initialized after resolution and rayTracer are set
+            if (camera.imageWriter == null) {
+                throw new IllegalStateException("ImageWriter not initialized. Call setResolution after setRayTracer.");
+            }
+
+            // Clear the target to avoid retaining unnecessary state in the builder after validation
             target = null;
-        }
-
-        /**
-         * Checks if two vectors are orthogonal.
-         *
-         * @param v1 The first vector.
-         * @param v2 The second vector.
-         * @return true if the vectors are orthogonal, false otherwise.
-         */
-        private boolean isOrthogonal(Vector v1, Vector v2) {
-            return isZero(v1.dotProduct(v2));
-        }
-
-        /**
-         * Sets the resolution of the view plane (number of pixels in the x and y directions).
-         *
-         * @param nx The number of pixels in the x direction.
-         * @param ny The number of pixels in the y direction.
-         * @return The Builder instance.
-         */
-        public Builder setResolution(int nx, int ny) {
-            if(alignZero(nx) <= 0 || alignZero(ny) <= 0) {
-                throw new IllegalArgumentException("Resolution must be positive");
-            }
-            camera.nX = nx;
-            camera.nY = ny;
-            camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name ,nx, ny);
-            return this;
-        }
-
-        /**
-         * Set multi-threading <br>
-         * Parameter value meaning:
-         * <ul>
-         * <li>-2 - number of threads is number of logical processors less 2</li>
-         * <li>-1 - stream processing parallelization (implicit multi-threading) is used</li>
-         * <li>0  - multi-threading is not activated</li>
-         * <li>1 and more - literally number of threads</li>     *
-         * </ul>
-         * @param  threads number of threads
-         * @return         builder object itself
-         * */
-        public Builder setMultithreading(int threads) {
-            if (threads < -3)
-                throw new IllegalArgumentException("Multithreading parameter must be -2 or higher");
-            if (threads == -2) {
-                int cores = Runtime.getRuntime().availableProcessors() - SPARE_THREADS;
-                camera.threadsCount = cores <= 2 ? 1 : cores;
-            }
-            else
-                camera.threadsCount = threads;
-            return this;
-        }
-        /**
-         *  Set debug printing interval. If it's zero - there won't be printing at all
-         * @param  interval printing interval in %
-         * @return          builder object itself
-         */
-        public Builder setDebugPrint(double interval) {
-            if (interval < 0) throw new IllegalArgumentException("interval parameter must be non-negative");
-            camera.printInterval = interval;
-            return this;
         }
     }
 

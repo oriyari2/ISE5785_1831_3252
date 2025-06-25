@@ -68,20 +68,7 @@ public class PianoScenceTest {
     private final Material benchLegMaterial = new Material()
             .setKD(0.7).setKS(0.3).setShininess(30);
 
-    /**
-     * Initializes the scene and camera for each test.
-     */
-    private void setupScene(String testName) {
-        scene = new Scene(testName);
-        cameraBuilder = Camera.getBuilder()
-                .setRayTracer(scene, RayTracerType.SIMPLE)
-                .setVpDistance(1000)
-                .setVpSize(2500, 2500)
-                .setResolution(1000, 1000)
-                .setMultithreading(-2);
 
-        // Ambient light is now set in addSceneLighting to allow more control in full scene
-    }
 
     /**
      * Helper method to add multiple geometries to the scene,
@@ -113,6 +100,8 @@ public class PianoScenceTest {
     void testStageCreation() {
         setupScene("Stage Creation Test");
         // For individual component tests, add a basic light
+        // Note: For full scenes, addSceneLighting will be called.
+        // For component tests, we can keep a simpler ambient light here or use addSceneLighting as well.
         scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30)));
 
         buildStage(); // Call the helper method to build the stage
@@ -398,15 +387,37 @@ public class PianoScenceTest {
         }
         // Assuming the first sphere in chandelierElements is the colored glass, and the rest are crystals
         if (!chandelierElements.isEmpty()) {
-            addGeometriesToScene(new Color(150, 200, 255), coloredGlassMaterial, chandelierElements.get(0));
-            if (chandelierElements.size() > 1) {
-                // Collect all crystal spheres into a new array for a single add call
-                Intersectable[] crystalSpheres = new Intersectable[chandelierElements.size() - 1];
-                for(int i = 1; i < chandelierElements.size(); i++) {
-                    crystalSpheres[i-1] = chandelierElements.get(i);
+            // Filter and add colored glass spheres
+            List<Intersectable> coloredGlassSpheres = new LinkedList<>();
+            for (int ring = 0; ring < 3; ring++) {
+                int numCrystals = 6 + ring * 2;
+                double radius = 150 + ring * 80;
+                double height = 1300 - ring * 100;
+                for (int i = 0; i < numCrystals; i++) {
+                    double angle = i * 2 * Math.PI / numCrystals;
+                    double x = radius * Math.cos(angle);
+                    double z = radius * Math.sin(angle) - 500;
+                    coloredGlassSpheres.add(new Sphere(new Point(x, height, z), 25));
                 }
-                addGeometriesToScene(new Color(255, 255, 255), crystalMaterial, crystalSpheres);
             }
+            addGeometriesToScene(new Color(150, 200, 255), coloredGlassMaterial, coloredGlassSpheres.toArray(new Intersectable[0]));
+
+            // Filter and add crystal spheres
+            List<Intersectable> crystalSpheres = new LinkedList<>();
+            for (int ring = 0; ring < 3; ring++) {
+                int numCrystals = 6 + ring * 2;
+                double radius = 150 + ring * 80;
+                double height = 1300 - ring * 100;
+                for (int i = 0; i < numCrystals; i++) {
+                    double angle = i * 2 * Math.PI / numCrystals;
+                    double x = radius * Math.cos(angle);
+                    double z = radius * Math.sin(angle) - 500;
+                    for (int j = 0; j < 3; j++) {
+                        crystalSpheres.add(new Sphere(new Point(x, height - 40 - j * 30, z), 8));
+                    }
+                }
+            }
+            addGeometriesToScene(new Color(255, 255, 255), crystalMaterial, crystalSpheres.toArray(new Intersectable[0]));
         }
     }
 
@@ -438,37 +449,83 @@ public class PianoScenceTest {
 
     /**
      * Helper method to add lighting to the scene.
+     * This method is enhanced to provide more realistic lighting using all light source types.
      */
     private void addSceneLighting() {
-        // Basic ambient light - very dim
-        scene.setAmbientLight(new AmbientLight(new Color(15, 15, 20))); // Dimmier
+        // Clear existing lights to ensure a fresh setup for this method call
+        scene.lights.clear();
 
-        // Main spotlight - focused on the piano (slightly above and behind)
-        scene.lights.add(
-                new SpotLight(new Color(800, 750, 600), new Point(0, 1000, -200), new Vector(0, -1, 0.1)) // Reduced intensity
-                        .setKl(0.000001).setKq(0.000001)/*.setNarrowBeam(10)*/);
+        // 1. Ambient Light: Provides a very subtle, soft overall illumination.
+        //    Slightly warmer color for a more inviting atmosphere.
+        scene.setAmbientLight(new AmbientLight(new Color(30, 25, 35)));
 
-        // Fill spotlight - from the front, to illuminate the front of the piano and player
-        scene.lights.add(
-                new SpotLight(new Color(500, 450, 400), new Point(0, 300, 300), new Vector(0, -0.7, -1)) // Reduced intensity
-                        .setKl(0.000001).setKq(0.0000001)/*.setNarrowBeam(20)*/);
+        // 2. Directional Light: Simulates a strong, distant light source, like natural light
+        //    from a large window or a broad stage wash from overhead, creating general directionality.
+        //    Light comes from top-left-front.
+        scene.lights.add(new DirectionalLight(new Color(250, 240, 230), new Vector(-0.5, -1, -0.5)));
 
-        // Stage side lights - create depth and dimension
+        // 3. Point Light:
+        //    a. Chandelier Light: Illuminates the area around the chandelier.
+        //       Increased intensity and slightly adjusted attenuation for a wider spread.
         scene.lights.add(
-                new SpotLight(new Color(400, 300, 200), new Point(1000, 500, 0), new Vector(-1, -0.5, 0)) // Reduced intensity
-                        .setKl(0.00003).setKq(0.000003));
-        scene.lights.add(
-                new SpotLight(new Color(200, 300, 400), new Point(-1000, 500, 0), new Vector(1, -0.5, 0)) // Reduced intensity
-                        .setKl(0.00003).setKq(0.000003));
+                new PointLight(new Color(220, 210, 190), new Point(0, 1200, -500))
+                        .setKl(0.00006).setKq(0.000008)); // Adjusted for more spread
 
-        // Backlight for the wall
+        //    b. Subtle Fill Light (below stage): Very dim light to lift shadows from below, simulating
+        //       some light bouncing off the floor or very subtle stage footlights.
         scene.lights.add(
-                new SpotLight(new Color(150, 100, 200), new Point(0, 400, -1400), new Vector(0, 0, 1)) // Reduced intensity
-                        .setKl(0.00004).setKq(0.000008));
+                new PointLight(new Color(40, 40, 50), new Point(0, -150, 0))
+                        .setKl(0.0005).setKq(0.00005));
 
-        // Light for the chandelier (less intense than direct spotlights)
+        // 4. Spot Lights: Used for focused illumination and dramatic effects.
+        //    a. Main Piano Spotlight: Bright, focused light directly on the piano,
+        //       creating strong highlights and shadows. Higher beam exponent for a tighter cone.
         scene.lights.add(
-                new PointLight(new Color(180, 170, 150), new Point(0, 1200, -500)) // Reduced intensity
-                        .setKl(0.00008).setKq(0.00001));
+                new SpotLight(new Color(1000, 950, 800), new Point(0, 800, -200), new Vector(0, -1, 0.1))
+                        .setKl(0.000005).setKq(0.0000005)
+                        .setBeamExponent(30)); // Very tight beam
+
+        //    b. Front Fill Spotlight: Softer, wider beam from the front to reduce harsh shadows
+        //       created by the main spotlight on the front of the piano and performer.
+        scene.lights.add(
+                new SpotLight(new Color(300, 300, 350), new Point(0, 300, 300), new Vector(0, -0.7, -1))
+                        .setKl(0.000001).setKq(0.0000001)
+                        .setBeamExponent(5)); // Wider, softer beam
+
+        //    c. Stage Side Lights (Warm & Cool): Add dimension and color variation to the stage.
+        //       Moderate beam exponent for general illumination of stage areas.
+        scene.lights.add(
+                new SpotLight(new Color(400, 300, 200), new Point(1000, 500, 0), new Vector(-1, -0.5, 0))
+                        .setKl(0.000008).setKq(0.0000008)
+                        .setBeamExponent(15)); // Moderate beam
+        scene.lights.add(
+                new SpotLight(new Color(200, 300, 400), new Point(-1000, 500, 0), new Vector(1, -0.5, 0))
+                        .setKl(0.000008).setKq(0.0000008)
+                        .setBeamExponent(15)); // Moderate beam
+
+        //    d. Backlight for the Wall: Separates the back wall from the main stage elements,
+        //       creating a sense of depth and atmospheric glow.
+        scene.lights.add(
+                new SpotLight(new Color(150, 100, 200), new Point(0, 400, -1400), new Vector(0, 0, 1))
+                        .setKl(0.00001).setKq(0.000001) // Slightly less attenuation for wider wash
+                        .setBeamExponent(10)); // General wash on the wall
+    }
+
+    /**
+     * Initializes the scene and camera for each test.
+     */
+    private void setupScene(String testName) {
+        scene = new Scene(testName);
+        cameraBuilder = Camera.getBuilder()
+                .setSuperSamplingLevel(6) // Example: 6x6 anti-aliasing
+                .setSamplingMethod(Camera.SamplingMethod.GRID)
+                .setIncludeOriginalRayInAA(true)
+                .setRayTracer(scene, RayTracerType.SIMPLE) // For backward compatibility in existing tests
+                .setVpDistance(1000)
+                .setVpSize(2500, 2500)
+                .setResolution(1000, 1000)
+                .setMultithreading(-2);
+
+        // Ambient light is now set in addSceneLighting to allow more control in full scene
     }
 }

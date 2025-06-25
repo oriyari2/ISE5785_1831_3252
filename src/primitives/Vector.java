@@ -1,5 +1,7 @@
 package primitives;
 
+import static primitives.Util.isZero; // Ensure Util.isZero is imported
+
 /**
  * Represents a three-dimensional vector in 3D space
  * A vector extends {@link Point} but cannot be the zero vector (0,0,0).
@@ -7,7 +9,7 @@ package primitives;
 public class Vector extends Point {
     public static final Vector AXIS_X = new Vector(1, 0, 0);
     public static final Vector AXIS_Y = new Vector(0, 1, 0);
-    public static final Vector AXIS_Z = new Vector(0, 0, 1);;
+    public static final Vector AXIS_Z = new Vector(0, 0, 1);
     public static final Vector MINUS_Y = new Vector(0,-1,0);
     /**
      * Constructs a vector from three coordinates.
@@ -118,5 +120,17 @@ public class Vector extends Point {
     public Vector normalize() {
         double length = length();
         return scale(1 / length);
+    }
+
+    /**
+     * Checks if two vectors are orthogonal.
+     *
+     * @param v1 The first vector.
+     * @param v2 The second vector.
+     * @return true if the vectors are orthogonal, false otherwise.
+     */
+    public static boolean isOrthogonal(Vector v1, Vector v2) {
+        // Orthogonality is determined by a zero dot product
+        return isZero(v1.dotProduct(v2));
     }
 }
