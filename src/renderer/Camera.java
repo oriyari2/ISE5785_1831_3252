@@ -2,10 +2,12 @@ package renderer;
 
 import primitives.*;
 import scene.Scene;
+
 import java.util.stream.IntStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.MissingResourceException;
+import java.util.ArrayList; // Added for convenience with lists
 
 import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
@@ -30,17 +32,17 @@ public class Camera implements Cloneable {
     private int nY = 1; // The number of pixels in the y direction
 
     /** Amount of threads to use fore rendering image by the camera */
-    private int              threadsCount     = 0;
+    private int threadsCount = 0;
     /**
      * Amount of threads to spare for Java VM threads:<br>
      * Spare threads if trying to use all the cores
      */
-    private static final int SPARE_THREADS    = 2;
+    private static final int SPARE_THREADS = 2;
     /**
-     Debug print interval in seconds (for progress percentage) <br>
-     if it is zero - there is no progress output
+     * Debug print interval in seconds (for progress percentage) <br>
+     * if it is zero - there is no progress output
      */
-    private double           printInterval    = 0;
+    private double printInterval = 0;
     /**
      * Pixel manager for supporting:
      * <ul>
@@ -62,10 +64,12 @@ public class Camera implements Cloneable {
      * Enum to define the sampling method for anti-aliasing.
      * CENTER: A single ray at the pixel center (default, no super-sampling).
      * GRID: Uniform grid sampling within the pixel area.
+     * ADAPTIVE: Adaptive supersampling based on color changes.
      */
     public enum SamplingMethod {
         CENTER, // A single ray at the exact center of the pixel (no super-sampling benefit)
-        GRID    // Uniform grid sampling within the pixel area
+        GRID,    // Uniform grid sampling within the pixel area
+        ADAPTIVE // Adaptive supersampling based on color changes
     }
 
     /** The sampling method to use for anti-aliasing */
@@ -73,6 +77,11 @@ public class Camera implements Cloneable {
 
     /** Whether to explicitly include the original central ray in the anti-aliasing sample set. */
     private boolean includeOriginalRayInAA = true; // Default to true
+
+    /** Maximum recursion level for adaptive supersampling */
+    private int adaptiveMaxLevel = 3; // Default recursion depth
+    /** Color difference threshold for adaptive supersampling subdivision */
+    private double adaptiveColorThreshold = 50.0; // Default color difference threshold (e.g., Euclidean distance in RGB)
 
 
     /**
@@ -156,10 +165,9 @@ public class Camera implements Cloneable {
         return new Ray(p0, pIJ.subtract(p0));
     }
 
-
     /**
-     * Constructs a list of rays for a given pixel, leveraging the TargetArea class
-     * for generating sample points for anti-aliasing.
+     * Constructs a list of rays for a given pixel, implementing anti-aliasing
+     * by generating multiple rays within the pixel area.
      *
      * @param nX The total number of pixels along the x-axis (image width).
      * @param nY The total number of pixels along the y-axis (image height).
@@ -178,24 +186,121 @@ public class Camera implements Cloneable {
         double xJ_pixelCenter = (j - (nX - 1) / 2.0) * pixelWidth;
         double yI_pixelCenter = (i - (nY - 1) / 2.0) * pixelHeight;
 
-        // Calculate the 3D center point of the current pixel on the view plane
-        Point pixel3DCenter = constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter).getPoint(distance);
+        // Define the pixel boundaries in view plane coordinates relative to pcenter
+        double xMinPixel = xJ_pixelCenter - pixelWidth / 2.0;
+        double xMaxPixel = xJ_pixelCenter + pixelWidth / 2.0;
+        double yMinPixel = yI_pixelCenter - pixelHeight / 2.0;
+        double yMaxPixel = yI_pixelCenter + pixelHeight / 2.0;
 
-        // Create a TargetArea instance for this pixel
-        // The target area is defined on the view plane, perpendicular to vTo.
-        TargetArea pixelTargetArea = new TargetArea(pixel3DCenter, vTo, pixelWidth, pixelHeight);
 
-        // Generate sample 3D points within this pixel's target area using the TargetArea class
-        List<Point> samplePoints = pixelTargetArea.generateSamplePoints(
-                superSamplingLevel, samplingMethod, includeOriginalRayInAA);
+        switch (samplingMethod) {
+            case CENTER:
+                rays.add(constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter));
+                break;
+            case GRID:
+                // If super-sampling level is 1, it's equivalent to CENTER, but we still use the grid loop for consistency.
+                // The loop will just run once for row=0, col=0, effectively placing a ray at the center of the pixel.
+                // Calculate sub-pixel dimensions
+                double subPixelWidth = pixelWidth / superSamplingLevel;
+                double subPixelHeight = pixelHeight / superSamplingLevel;
 
-        // Construct rays from camera origin (p0) to each sample point
-        for (Point samplePoint : samplePoints) {
-            rays.add(new Ray(p0, samplePoint.subtract(p0)));
+                // Generate grid of rays
+                for (int row = 0; row < superSamplingLevel; row++) {
+                    for (int col = 0; col < superSamplingLevel; col++) {
+                        // Calculate offset within the pixel (relative to pixel's top-left corner)
+                        // Adjusting to center of sub-pixel
+                        double xOffset = xMinPixel + (col + 0.5) * subPixelWidth;
+                        double yOffset = yMinPixel + (row + 0.5) * subPixelHeight;
+
+                        rays.add(constructSingleRayInternal(xOffset, yOffset));
+                    }
+                }
+                // Optionally include the original center ray if not already part of the grid (only if superSamplingLevel > 1, to avoid duplicates)
+                if (includeOriginalRayInAA && superSamplingLevel > 1) {
+                    rays.add(constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter));
+                }
+                break;
+            case ADAPTIVE:
+                // Call the recursive adaptive sampling function
+                calcAdaptiveRays(xMinPixel, xMaxPixel, yMinPixel, yMaxPixel, 0, rays);
+                break;
         }
 
         return rays;
     }
+
+    /**
+     * Recursive helper method for adaptive supersampling.
+     * Divides a pixel area into sub-quadrants and traces rays until color
+     * variation is below a threshold or max recursion level is reached.
+     *
+     * @param xMin  Minimum x-coordinate of the current sub-pixel area.
+     * @param xMax  Maximum x-coordinate of the current sub-pixel area.
+     * @param yMin  Minimum y-coordinate of the current sub-pixel area.
+     * @param yMax  Maximum y-coordinate of the current sub-pixel area.
+     * @param level The current recursion level.
+     * @param rays  The list to accumulate final rays.
+     */
+    private void calcAdaptiveRays(double xMin, double xMax, double yMin, double yMax, int level, List<Ray> rays) {
+        // Base case: Maximum recursion level reached
+        if (level >= adaptiveMaxLevel) {
+            // Add the center ray of this sub-pixel, or a small grid, based on preference.
+            // For simplicity, adding just the center ray at max depth.
+            rays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
+            return;
+        }
+
+        // Sample 5 points: 4 corners and the center of the current sub-pixel area
+        List<Ray> sampleRays = new ArrayList<>(5);
+        List<Color> sampleColors = new ArrayList<>(5);
+
+        // Corners
+        sampleRays.add(constructSingleRayInternal(xMin, yMin));
+        sampleRays.add(constructSingleRayInternal(xMax, yMin));
+        sampleRays.add(constructSingleRayInternal(xMin, yMax));
+        sampleRays.add(constructSingleRayInternal(xMax, yMax));
+        // Center
+        sampleRays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
+
+        // Trace each sample ray to get its color
+        for (Ray ray : sampleRays) {
+            Color color = rayTracer.traceRay(ray);
+            if (color == null) {
+                color = Color.BLACK; // Treat null as black
+            }
+            sampleColors.add(color);
+        }
+
+        // Check color variation among sample points
+        double maxColorDiff = 0.0;
+        for (int i = 0; i < sampleColors.size(); i++) {
+            for (int j = i + 1; j < sampleColors.size(); j++) {
+                maxColorDiff = Math.max(maxColorDiff, sampleColors.get(i).distance(sampleColors.get(j)));
+            }
+        }
+
+        // Base case: Color variation is below threshold
+        if (maxColorDiff <= adaptiveColorThreshold) {
+            // If the variation is small, just add the center ray (or average of samples)
+            // For simplicity, let's just add the center ray of this sub-pixel once we are satisfied
+            rays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
+            return;
+        }
+
+        // Recursive step: Subdivide into four sub-quadrants
+        double midX = (xMin + xMax) / 2.0;
+        double midY = (yMin + yMax) / 2.0;
+
+        // Top-Left quadrant
+        calcAdaptiveRays(xMin, midX, yMin, midY, level + 1, rays);
+        // Top-Right quadrant
+        calcAdaptiveRays(midX, xMax, yMin, midY, level + 1, rays);
+        // Bottom-Left quadrant
+        calcAdaptiveRays(xMin, midX, midY, yMax, level + 1, rays);
+        // Bottom-Right quadrant
+        calcAdaptiveRays(midX, xMax, midY, yMax, level + 1, rays);
+    }
+
 
     /**
      * This function renders image's pixel color map from the scene
@@ -268,7 +373,7 @@ public class Camera implements Cloneable {
      * @param fileName The name of the file to save the image.
      * @return The Camera object itself for method chaining.
      */
-    public Camera writeToImage(String fileName){
+    public Camera writeToImage(String fileName) {
         imageWriter.writeToImage(fileName);
         return this;
     }
@@ -284,6 +389,7 @@ public class Camera implements Cloneable {
                         .forEach(j -> castRaysAndAverage(j, i)));
         return this;
     }
+
     /**
      * Render image without multi-threading.
      * Calls the new {@code castRaysAndAverage} method for each pixel.
@@ -295,6 +401,7 @@ public class Camera implements Cloneable {
                 castRaysAndAverage(j, i);
         return this;
     }
+
     /**
      * Render image using multi-threading by creating and running raw threads.
      * Calls the new {@code castRaysAndAverage} method for each pixel.
@@ -313,8 +420,8 @@ public class Camera implements Cloneable {
         for (var thread : threads) thread.start();
         try {
             for (var thread : threads) thread.join();
+        } catch (InterruptedException ignored) {
         }
-        catch (InterruptedException ignored) {}
         return this;
     }
 
@@ -473,18 +580,18 @@ public class Camera implements Cloneable {
          * @param ny The number of pixels in the y direction.
          * @return The Builder instance.
          */
-        public Builder setResolution(int nx, int intny) { // Changed ny to intny to avoid name clash if any, but it's fine
-            if(alignZero(nx) <= 0 || alignZero(intny) <= 0) {
+        public Builder setResolution(int nx, int ny) {
+            if (alignZero(nx) <= 0 || alignZero(ny) <= 0) {
                 throw new IllegalArgumentException("Resolution must be positive");
             }
             camera.nX = nx;
-            camera.nY = intny;
+            camera.nY = ny;
             // imageWriter initialization moved here, as it depends on resolution
             // It assumes scene.name is available; if not, pass it as a parameter to setResolution
             if (camera.rayTracer == null || camera.rayTracer.scene == null || camera.rayTracer.scene.name == null) {
                 throw new IllegalStateException("RayTracer and Scene must be set before setting resolution for ImageWriter.");
             }
-            camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name ,nx, intny);
+            camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name, nx, ny);
             return this;
         }
 
@@ -507,11 +614,11 @@ public class Camera implements Cloneable {
             if (threads == -2) {
                 int cores = Runtime.getRuntime().availableProcessors() - SPARE_THREADS;
                 camera.threadsCount = cores <= 2 ? 1 : cores;
-            }
-            else
+            } else
                 camera.threadsCount = threads;
             return this;
         }
+
         /**
          * Set debug printing interval. If it's zero - there won't be printing at all
          * @param  interval printing interval in %
@@ -544,7 +651,7 @@ public class Camera implements Cloneable {
         /**
          * Sets the sampling method to be used for anti-aliasing.
          *
-         * @param method The {@link SamplingMethod} to use (e.g., CENTER, GRID).
+         * @param method The {@link SamplingMethod} to use (e.g., CENTER, GRID, ADAPTIVE).
          * @return The Builder instance.
          */
         public Builder setSamplingMethod(SamplingMethod method) {
@@ -568,6 +675,38 @@ public class Camera implements Cloneable {
         }
 
         /**
+         * Sets the maximum recursion level for adaptive supersampling.
+         *
+         * @param level The maximum recursion depth (must be positive).
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the level is less than 1.
+         */
+        public Builder setAdaptiveMaxLevel(int level) {
+            if (level < 1) {
+                throw new IllegalArgumentException("Adaptive max level must be at least 1");
+            }
+            camera.adaptiveMaxLevel = level;
+            return this;
+        }
+
+        /**
+         * Sets the color difference threshold for adaptive supersampling subdivision.
+         * If the color difference between samples within a sub-pixel region is below
+         * this threshold, no further subdivision occurs.
+         *
+         * @param threshold The color difference threshold (must be non-negative).
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the threshold is negative.
+         */
+        public Builder setAdaptiveColorThreshold(double threshold) {
+            if (threshold < 0) {
+                throw new IllegalArgumentException("Adaptive color threshold cannot be negative");
+            }
+            camera.adaptiveColorThreshold = threshold;
+            return this;
+        }
+
+        /**
          * Builds and returns the constructed Camera object.
          * This method ensures immutability by cloning the Camera instance.
          *
@@ -578,12 +717,10 @@ public class Camera implements Cloneable {
                 validate(camera);
                 // Clone the camera to ensure immutability
                 return (Camera) camera.clone();
-            }
-            catch (MissingResourceException | IllegalStateException e) {
+            } catch (MissingResourceException | IllegalStateException e) {
                 System.err.println("Camera build error: " + e.getMessage());
                 return null;
-            }
-            catch (CloneNotSupportedException e) {
+            } catch (CloneNotSupportedException e) {
                 throw new RuntimeException("Camera cloning failed", e);
             }
         }
@@ -661,5 +798,4 @@ public class Camera implements Cloneable {
             target = null;
         }
     }
-
 }

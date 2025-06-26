@@ -111,6 +111,21 @@ public class Color {
         return new Color(rgb.reduce(k));
     }
 
+    /**
+     * Calculates the Euclidean distance between this color and another color in RGB space.
+     * This can be used as a measure of color difference.
+     *
+     * @param other The other color to compare with.
+     * @return The Euclidean distance between the two colors.
+     */
+    public double distance(Color other) {
+        return Math.sqrt(
+                Math.pow(this.rgb.d1() - other.rgb.d1(), 2) +
+                        Math.pow(this.rgb.d2() - other.rgb.d2(), 2) +
+                        Math.pow(this.rgb.d3() - other.rgb.d3(), 2)
+        );
+    }
+
     @Override
     public String toString() { return "rgb:" + rgb; }
 }

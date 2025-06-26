@@ -22,9 +22,8 @@ public class PianoScenceTest {
     private static final double PIANO_Y_BASE = -50;
     private static final double PIANO_Y_TOP = 50;
     private static final double STAGE_FLOOR_Y = -200;
-    private static final int STAGE_TILE_SIZE = 200; // Side length of the floor triangle
+    // Removed STAGE_TILE_SIZE and WALL_TILE_SIZE as we'll use larger polygons
     private static final double WALL_Z_POSITION = -1500;
-    private static final int WALL_TILE_SIZE = 300; // Side length of the wall square
 
     /** Scene for the tests */
     private Scene scene;
@@ -40,12 +39,14 @@ public class PianoScenceTest {
     private final Material blackKeyMaterial = new Material()
             .setKD(0.3).setKS(0.7).setShininess(120)
             .setkR(new Double3(0.05, 0.05, 0.05));
+    // Updated stageMaterial: glossy brown wood, with kR set to ZERO for no direct reflections
     private final Material stageMaterial = new Material()
-            .setKD(0.4).setKS(0.6).setShininess(30)
-            .setkR(new Double3(0.1, 0.1, 0.1)); // Reduced to 0.1, 0.1, 0.1 to lessen reflection
+            .setKD(0.4).setKS(0.6).setShininess(80) // Shininess from your provided snippet (80)
+            .setkR(Double3.ZERO); // CRITICAL CHANGE: Set kR to ZERO for no mirror-like reflections
+    // Updated wallMaterial: red velvet
     private final Material wallMaterial = new Material()
-            .setKD(0.8).setKS(0.2).setShininess(10)
-            .setkR(new Double3(0.05, 0.05, 0.05));
+            .setKD(0.8).setKS(0.2).setShininess(10) // From your provided snippet
+            .setkR(new Double3(0.05, 0.05, 0.05)); // From your provided snippet
     private final Material coloredGlassMaterial = new Material()
             .setKD(0.2).setKS(0.8).setShininess(250)
             .setkT(new Double3(0.7, 0.8, 0.9))
@@ -69,10 +70,10 @@ public class PianoScenceTest {
             .setKD(0.7).setKS(0.3).setShininess(30);
 
 
-
     /**
      * Helper method to add multiple geometries to the scene,
      * setting their emission and material if they are Geometry instances.
+     * This method is now primarily for general geometries, not specific floor/wall tiles.
      *
      * @param emission The emission color for the geometries.
      * @param material The material for the geometries.
@@ -99,14 +100,9 @@ public class PianoScenceTest {
     @Test
     void testStageCreation() {
         setupScene("Stage Creation Test");
-        // For individual component tests, add a basic light
-        // Note: For full scenes, addSceneLighting will be called.
-        // For component tests, we can keep a simpler ambient light here or use addSceneLighting as well.
-        scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30)));
-
+        scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30))); // Basic light for component test
         buildStage(); // Call the helper method to build the stage
 
-        // Basic camera and render for stage test
         cameraBuilder
                 .setLocation(new Point(0, 500, 1000))
                 .setDirection(new Point(0, 0, 0), Vector.AXIS_Y)
@@ -203,72 +199,41 @@ public class PianoScenceTest {
                 .writeToImage("lighting_setup_test");
     }
 
-    @Test
-    void grandPianoOnStageScene() {
-        setupScene("Grand Piano On Stage Scene");
-
-        // Call individual build methods to construct the full scene
-        buildStage();
-        buildGrandPianoBody();
-        buildPianoLegs();
-        buildKeyboard();
-        buildChandelier();
-        buildBench();
-        addSceneLighting(); // Use the enhanced lighting
-
-        // Final camera setup for the full scene
-        cameraBuilder
-                .setLocation(new Point(800, 400, 800))
-                .setDirection(new Point(-200, -50, -400), Vector.AXIS_Y)
-                .build()
-                .renderImage()
-                .writeToImage("grand_piano_on_stage");
-    }
 
     /**
      * Helper method to build the stage.
+     * This method is updated to reflect the new material properties and emission colors for the floor and walls.
      */
     private void buildStage() {
-        // Stage floor - built using triangles (as in the original code)
-        List<Intersectable> stageFloorGeometries = new LinkedList<>();
-        for (int x = -2000; x < 2000; x += STAGE_TILE_SIZE) {
-            for (int z = -1500; z < 1500; z += STAGE_TILE_SIZE) {
-                // Triangle 1
-                stageFloorGeometries.add(
-                        new Triangle(
-                                new Point(x, STAGE_FLOOR_Y, z),
-                                new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z),
-                                new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE))
-                );
-                // Triangle 2
-                stageFloorGeometries.add(
-                        new Triangle(
-                                new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z),
-                                new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE),
-                                new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE))
-                );
-            }
-        }
-        addGeometriesToScene(new Color(139, 90, 43), stageMaterial, stageFloorGeometries.toArray(new Intersectable[0]));
+        // Stage floor - built using two large Polygons instead of many small triangles
+        // Main floor area
+        scene.geometries.add(
+                new Polygon(
+                        new Point(-2000, STAGE_FLOOR_Y, -1500),
+                        new Point(2000, STAGE_FLOOR_Y, -1500),
+                        new Point(2000, STAGE_FLOOR_Y, 1500),
+                        new Point(-2000, STAGE_FLOOR_Y, 1500))
+                        .setEmission(new Color(139, 90, 43))
+                        .setMaterial(stageMaterial)
+        );
 
-        // Base under the piano (4-point Polygon)
-        addGeometriesToScene(new Color(30, 20, 10), stageMaterial,
-                new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150)));
+        // Base under the piano (4-point Polygon) - emission color (30, 20, 10)
+        scene.geometries.add(
+                new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150))
+                        .setEmission(new Color(30, 20, 10))
+                        .setMaterial(stageMaterial)
+        );
 
-        // Back stage wall - built using squares (4-point Polygon)
-        List<Intersectable> wallGeometries = new LinkedList<>();
-        for (int x = -2000; x < 2000; x += WALL_TILE_SIZE) {
-            for (int y = -200; y < 1800; y += WALL_TILE_SIZE) {
-                wallGeometries.add(
-                        new Polygon(
-                                new Point(x, y, WALL_Z_POSITION),
-                                new Point(x + WALL_TILE_SIZE, y, WALL_Z_POSITION),
-                                new Point(x + WALL_TILE_SIZE, y + WALL_TILE_SIZE, WALL_Z_POSITION),
-                                new Point(x, y + WALL_TILE_SIZE, WALL_Z_POSITION))
-                );
-            }
-        }
-        addGeometriesToScene(new Color(120, 20, 20), wallMaterial, wallGeometries.toArray(new Intersectable[0]));
+        // Back stage wall - built using one large Polygon instead of many small triangles
+        scene.geometries.add(
+                new Polygon(
+                        new Point(-2000, -200, WALL_Z_POSITION),
+                        new Point(2000, -200, WALL_Z_POSITION),
+                        new Point(2000, 1800, WALL_Z_POSITION),
+                        new Point(-2000, 1800, WALL_Z_POSITION))
+                        .setEmission(new Color(120, 20, 20)) // Using one emission color for the large wall
+                        .setMaterial(wallMaterial)
+        );
     }
 
     /**
@@ -456,59 +421,59 @@ public class PianoScenceTest {
         scene.lights.clear();
 
         // 1. Ambient Light: Provides a very subtle, soft overall illumination.
-        //    Slightly warmer color for a more inviting atmosphere.
-        scene.setAmbientLight(new AmbientLight(new Color(30, 25, 35)));
+        //    Slightly warmer color for a more inviting atmosphere. Reduced slightly.
+        scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30)));
 
         // 2. Directional Light: Simulates a strong, distant light source, like natural light
         //    from a large window or a broad stage wash from overhead, creating general directionality.
-        //    Light comes from top-left-front.
-        scene.lights.add(new DirectionalLight(new Color(250, 240, 230), new Vector(-0.5, -1, -0.5)));
+        //    Light comes from top-left-front. Reduced intensity.
+        scene.lights.add(new DirectionalLight(new Color(180, 170, 160), new Vector(-0.5, -1, -0.5)));
 
         // 3. Point Light:
         //    a. Chandelier Light: Illuminates the area around the chandelier.
-        //       Increased intensity and slightly adjusted attenuation for a wider spread.
+        //       Reduced intensity to minimize unwanted reflections on the floor.
         scene.lights.add(
-                new PointLight(new Color(220, 210, 190), new Point(0, 1200, -500))
-                        .setKl(0.00006).setKq(0.000008)); // Adjusted for more spread
+                new PointLight(new Color(120, 110, 100), new Point(0, 1200, -500)) // Significantly reduced intensity
+                        .setKl(0.00008).setKq(0.00001)); // Slightly higher attenuation for local effect
 
-        //    b. Subtle Fill Light (below stage): Very dim light to lift shadows from below, simulating
-        //       some light bouncing off the floor or very subtle stage footlights.
+        //    b. Subtle Fill Light (below stage): Very dim light to lift shadows from below.
+        //       Kept subtle to avoid over-lighting.
         scene.lights.add(
-                new PointLight(new Color(40, 40, 50), new Point(0, -150, 0))
+                new PointLight(new Color(30, 30, 40), new Point(0, -150, 0)) // Slightly dimmer
                         .setKl(0.0005).setKq(0.00005));
 
         // 4. Spot Lights: Used for focused illumination and dramatic effects.
-        //    a. Main Piano Spotlight: Bright, focused light directly on the piano,
-        //       creating strong highlights and shadows. Higher beam exponent for a tighter cone.
+        //    a. Main Piano Spotlight: Bright, focused light directly on the piano.
+        //       Significantly reduced intensity to prevent over-exposure.
         scene.lights.add(
-                new SpotLight(new Color(1000, 950, 800), new Point(0, 800, -200), new Vector(0, -1, 0.1))
-                        .setKl(0.000005).setKq(0.0000005)
-                        .setBeamExponent(30)); // Very tight beam
+                new SpotLight(new Color(400, 380, 300), new Point(0, 800, -200), new Vector(0, -1, 0.1)) // Reduced intensity
+                        .setKl(0.000008).setKq(0.0000008) // Adjusted attenuation slightly
+                        .setBeamExponent(40)); // Tightened beam slightly for more focus
 
-        //    b. Front Fill Spotlight: Softer, wider beam from the front to reduce harsh shadows
-        //       created by the main spotlight on the front of the piano and performer.
+        //    b. Front Fill Spotlight: Softer, wider beam from the front to reduce harsh shadows.
+        //       Reduced intensity further.
         scene.lights.add(
-                new SpotLight(new Color(300, 300, 350), new Point(0, 300, 300), new Vector(0, -0.7, -1))
+                new SpotLight(new Color(100, 100, 120), new Point(0, 300, 300), new Vector(0, -0.7, -1)) // Reduced intensity
                         .setKl(0.000001).setKq(0.0000001)
                         .setBeamExponent(5)); // Wider, softer beam
 
         //    c. Stage Side Lights (Warm & Cool): Add dimension and color variation to the stage.
-        //       Moderate beam exponent for general illumination of stage areas.
+        //       Reduced intensity slightly for overall balance.
         scene.lights.add(
-                new SpotLight(new Color(400, 300, 200), new Point(1000, 500, 0), new Vector(-1, -0.5, 0))
-                        .setKl(0.000008).setKq(0.0000008)
-                        .setBeamExponent(15)); // Moderate beam
+                new SpotLight(new Color(250, 180, 150), new Point(1000, 500, 0), new Vector(-1, -0.5, 0)) // Reduced intensity
+                        .setKl(0.00001).setKq(0.000001)
+                        .setBeamExponent(15));
         scene.lights.add(
-                new SpotLight(new Color(200, 300, 400), new Point(-1000, 500, 0), new Vector(1, -0.5, 0))
-                        .setKl(0.000008).setKq(0.0000008)
-                        .setBeamExponent(15)); // Moderate beam
+                new SpotLight(new Color(150, 200, 300), new Point(-1000, 500, 0), new Vector(1, -0.5, 0)) // Reduced intensity
+                        .setKl(0.00001).setKq(0.000001)
+                        .setBeamExponent(15));
 
-        //    d. Backlight for the Wall: Separates the back wall from the main stage elements,
-        //       creating a sense of depth and atmospheric glow.
+        //    d. Backlight for the Wall: Separates the back wall from the main stage elements.
+        //       Reduced intensity slightly.
         scene.lights.add(
-                new SpotLight(new Color(150, 100, 200), new Point(0, 400, -1400), new Vector(0, 0, 1))
-                        .setKl(0.00001).setKq(0.000001) // Slightly less attenuation for wider wash
-                        .setBeamExponent(10)); // General wash on the wall
+                new SpotLight(new Color(100, 70, 150), new Point(0, 400, -1400), new Vector(0, 0, 1)) // Reduced intensity
+                        .setKl(0.00002).setKq(0.000002)
+                        .setBeamExponent(10));
     }
 
     /**
@@ -517,15 +482,39 @@ public class PianoScenceTest {
     private void setupScene(String testName) {
         scene = new Scene(testName);
         cameraBuilder = Camera.getBuilder()
-                .setSuperSamplingLevel(6) // Example: 6x6 anti-aliasing
-                .setSamplingMethod(Camera.SamplingMethod.GRID)
+//                .setSuperSamplingLevel(1)
+//                .setSamplingMethod(Camera.SamplingMethod.GRID)
                 .setIncludeOriginalRayInAA(true)
-                .setRayTracer(scene, RayTracerType.SIMPLE) // For backward compatibility in existing tests
+                .setRayTracer(scene, RayTracerType.SIMPLE)
                 .setVpDistance(1000)
                 .setVpSize(2500, 2500)
+                .setDebugPrint(0.1)
                 .setResolution(1000, 1000)
+                .setSamplingMethod(Camera.SamplingMethod.ADAPTIVE)
+                .setAdaptiveMaxLevel(2)
+                .setAdaptiveColorThreshold(70.0)
                 .setMultithreading(-2);
+    }
 
-        // Ambient light is now set in addSceneLighting to allow more control in full scene
+    @Test
+    void grandPianoOnStageScene() {
+        setupScene("Grand Piano On Stage Scene");
+
+        // Call individual build methods to construct the full scene
+        buildStage();
+        buildGrandPianoBody();
+        buildPianoLegs();
+        buildKeyboard();
+        buildChandelier();
+        buildBench();
+        addSceneLighting(); // Use the enhanced lighting
+
+        // Final camera setup for the full scene
+        cameraBuilder
+                .setLocation(new Point(800, 400, 800))
+                .setDirection(new Point(-200, -50, -400), Vector.AXIS_Y)
+                .build()
+                .renderImage()
+                .writeToImage("grand_piano_on_stage");
     }
 }
