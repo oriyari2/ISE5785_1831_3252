@@ -168,11 +168,12 @@ public class Camera implements Cloneable {
     /**
      * Constructs a list of rays for a given pixel, implementing anti-aliasing
      * by generating multiple rays within the pixel area.
+     * This version includes an optimized adaptive sampling implementation.
      *
      * @param nX The total number of pixels along the x-axis (image width).
      * @param nY The total number of pixels along the y-axis (image height).
-     * @param j  The pixel index along the x-axis (column).
-     * @param i  The pixel index along the y-axis (row).
+     * @param j The pixel index along the x-axis (column).
+     * @param i The pixel index along the y-axis (row).
      * @return A List of Ray objects to be traced for anti-aliasing.
      */
     public List<Ray> constructRays(int nX, int nY, int j, int i) {
@@ -192,14 +193,11 @@ public class Camera implements Cloneable {
         double yMinPixel = yI_pixelCenter - pixelHeight / 2.0;
         double yMaxPixel = yI_pixelCenter + pixelHeight / 2.0;
 
-
         switch (samplingMethod) {
             case CENTER:
                 rays.add(constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter));
                 break;
             case GRID:
-                // If super-sampling level is 1, it's equivalent to CENTER, but we still use the grid loop for consistency.
-                // The loop will just run once for row=0, col=0, effectively placing a ray at the center of the pixel.
                 // Calculate sub-pixel dimensions
                 double subPixelWidth = pixelWidth / superSamplingLevel;
                 double subPixelHeight = pixelHeight / superSamplingLevel;
@@ -215,92 +213,80 @@ public class Camera implements Cloneable {
                         rays.add(constructSingleRayInternal(xOffset, yOffset));
                     }
                 }
-                // Optionally include the original center ray if not already part of the grid (only if superSamplingLevel > 1, to avoid duplicates)
-                if (includeOriginalRayInAA && superSamplingLevel > 1) {
-                    rays.add(constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter));
-                }
                 break;
             case ADAPTIVE:
-                // Call the recursive adaptive sampling function
-                calcAdaptiveRays(xMinPixel, xMaxPixel, yMinPixel, yMaxPixel, 0, rays);
+                // Start adaptive sampling with initial corner samples
+                adaptiveSampling(xMinPixel, xMaxPixel, yMinPixel, yMaxPixel, 0, rays);
                 break;
         }
 
         return rays;
     }
 
+
     /**
-     * Recursive helper method for adaptive supersampling.
-     * Divides a pixel area into sub-quadrants and traces rays until color
-     * variation is below a threshold or max recursion level is reached.
+     * Optimized adaptive sampling that uses corner samples to determine if subdivision is needed.
+     * This method significantly reduces the number of rays traced by sampling strategically.
      *
-     * @param xMin  Minimum x-coordinate of the current sub-pixel area.
-     * @param xMax  Maximum x-coordinate of the current sub-pixel area.
-     * @param yMin  Minimum y-coordinate of the current sub-pixel area.
-     * @param yMax  Maximum y-coordinate of the current sub-pixel area.
+     * @param xMin Minimum x-coordinate of the current sub-pixel area.
+     * @param xMax Maximum x-coordinate of the current sub-pixel area.
+     * @param yMin Minimum y-coordinate of the current sub-pixel area.
+     * @param yMax Maximum y-coordinate of the current sub-pixel area.
      * @param level The current recursion level.
-     * @param rays  The list to accumulate final rays.
+     * @param rays The list to accumulate final rays.
      */
-    private void calcAdaptiveRays(double xMin, double xMax, double yMin, double yMax, int level, List<Ray> rays) {
+    private void adaptiveSampling(double xMin, double xMax, double yMin, double yMax, int level, List<Ray> rays) {
         // Base case: Maximum recursion level reached
         if (level >= adaptiveMaxLevel) {
-            // Add the center ray of this sub-pixel, or a small grid, based on preference.
-            // For simplicity, adding just the center ray at max depth.
+            // Add the center ray of this sub-pixel area
             rays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
             return;
         }
 
-        // Sample 5 points: 4 corners and the center of the current sub-pixel area
-        List<Ray> sampleRays = new ArrayList<>(5);
-        List<Color> sampleColors = new ArrayList<>(5);
+        // Sample the four corners of the current area
+        Ray topLeft = constructSingleRayInternal(xMin, yMin);
+        Ray topRight = constructSingleRayInternal(xMax, yMin);
+        Ray bottomLeft = constructSingleRayInternal(xMin, yMax);
+        Ray bottomRight = constructSingleRayInternal(xMax, yMax);
 
-        // Corners
-        sampleRays.add(constructSingleRayInternal(xMin, yMin));
-        sampleRays.add(constructSingleRayInternal(xMax, yMin));
-        sampleRays.add(constructSingleRayInternal(xMin, yMax));
-        sampleRays.add(constructSingleRayInternal(xMax, yMax));
-        // Center
-        sampleRays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
+        // Trace rays to get colors
+        Color colorTL = rayTracer.traceRay(topLeft);
+        Color colorTR = rayTracer.traceRay(topRight);
+        Color colorBL = rayTracer.traceRay(bottomLeft);
+        Color colorBR = rayTracer.traceRay(bottomRight);
 
-        // Trace each sample ray to get its color
-        for (Ray ray : sampleRays) {
-            Color color = rayTracer.traceRay(ray);
-            if (color == null) {
-                color = Color.BLACK; // Treat null as black
-            }
-            sampleColors.add(color);
-        }
+        // Handle null colors (treat as black)
+        if (colorTL == null) colorTL = Color.BLACK;
+        if (colorTR == null) colorTR = Color.BLACK;
+        if (colorBL == null) colorBL = Color.BLACK;
+        if (colorBR == null) colorBR = Color.BLACK;
 
-        // Check color variation among sample points
-        double maxColorDiff = 0.0;
-        for (int i = 0; i < sampleColors.size(); i++) {
-            for (int j = i + 1; j < sampleColors.size(); j++) {
-                maxColorDiff = Math.max(maxColorDiff, sampleColors.get(i).distance(sampleColors.get(j)));
-            }
-        }
+        // Calculate maximum color difference between corners
+        double maxDifference = 0.0;
+        maxDifference = Math.max(maxDifference, colorTL.perceptualDistance(colorTR));
+        maxDifference = Math.max(maxDifference, colorTL.perceptualDistance(colorBL));
+        maxDifference = Math.max(maxDifference, colorTL.perceptualDistance(colorBR));
+        maxDifference = Math.max(maxDifference, colorTR.perceptualDistance(colorBL));
+        maxDifference = Math.max(maxDifference, colorTR.perceptualDistance(colorBR));
+        maxDifference = Math.max(maxDifference, colorBL.perceptualDistance(colorBR));
 
-        // Base case: Color variation is below threshold
-        if (maxColorDiff <= adaptiveColorThreshold) {
-            // If the variation is small, just add the center ray (or average of samples)
-            // For simplicity, let's just add the center ray of this sub-pixel once we are satisfied
+        // If color variation is below threshold, no need to subdivide
+        if (maxDifference <= adaptiveColorThreshold) {
+            // Add only the center ray to represent this area
             rays.add(constructSingleRayInternal((xMin + xMax) / 2.0, (yMin + yMax) / 2.0));
             return;
         }
 
-        // Recursive step: Subdivide into four sub-quadrants
+        // Subdivide into four quadrants
         double midX = (xMin + xMax) / 2.0;
         double midY = (yMin + yMax) / 2.0;
 
-        // Top-Left quadrant
-        calcAdaptiveRays(xMin, midX, yMin, midY, level + 1, rays);
-        // Top-Right quadrant
-        calcAdaptiveRays(midX, xMax, yMin, midY, level + 1, rays);
-        // Bottom-Left quadrant
-        calcAdaptiveRays(xMin, midX, midY, yMax, level + 1, rays);
-        // Bottom-Right quadrant
-        calcAdaptiveRays(midX, xMax, midY, yMax, level + 1, rays);
+        // Recursively sample each quadrant
+        adaptiveSampling(xMin, midX, yMin, midY, level + 1, rays);     // Top-left
+        adaptiveSampling(midX, xMax, yMin, midY, level + 1, rays);     // Top-right
+        adaptiveSampling(xMin, midX, midY, yMax, level + 1, rays);     // Bottom-left
+        adaptiveSampling(midX, xMax, midY, yMax, level + 1, rays);     // Bottom-right
     }
-
 
     /**
      * This function renders image's pixel color map from the scene

@@ -128,4 +128,27 @@ public class Color {
 
     @Override
     public String toString() { return "rgb:" + rgb; }
+
+    /**
+     * Calculates a perceptual color difference using weighted RGB components.
+     * This gives more realistic color difference calculations for adaptive sampling
+     * based on human eye sensitivity to different color channels.
+     *
+     * @param other The other color to compare with.
+     * @return The perceptual distance between the two colors.
+     */
+    public double perceptualDistance(Color other) {
+        // Weights based on human eye sensitivity to RGB channels
+        double weightR = 0.299;
+        double weightG = 0.587;
+        double weightB = 0.114;
+
+        double deltaR = this.rgb.d1() - other.rgb.d1();
+        double deltaG = this.rgb.d2() - other.rgb.d2();
+        double deltaB = this.rgb.d3() - other.rgb.d3();
+
+        return Math.sqrt(weightR * deltaR * deltaR +
+                weightG * deltaG * deltaG +
+                weightB * deltaB * deltaB);
+    }
 }

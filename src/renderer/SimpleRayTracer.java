@@ -313,6 +313,7 @@ public class SimpleRayTracer extends RayTracerBase {
         return true;
     }
 
+
     /**
      * Calculates the transparency at the intersection point based on the shadow ray.
      * It checks for intersections along the path to the light source and accumulates transparency.
@@ -337,21 +338,24 @@ public class SimpleRayTracer extends RayTracerBase {
         Double3 ktr = Double3.ONE;
 
         // If there are no intersections, the path is fully transparent
-        if (shadowIntersections == null) return ktr;
+        if (shadowIntersections == null || shadowIntersections.isEmpty()) {
+            return ktr;
+        }
 
         // Go through each intersection of the shadow ray
         for (Intersection shadowInter : shadowIntersections) {
             double dist = shadowInter.point.distance(intersection.point);
 
             // Only consider objects that are between the point and the light source
-            if (dist < lightDistance) {
+            // and ensure we don't consider the same surface
+            if (dist < lightDistance && alignZero(dist) > 0 && shadowInter.geometry != intersection.geometry) {
                 // Get the transparency coefficient (kT) of the intersected geometry
                 Double3 kT = shadowInter.geometry.getMaterial().kT;
 
                 // Accumulate the transparency along the shadow ray
                 ktr = ktr.product(kT);
 
-                // Optimization: if transparency is negligible, skip the rest
+                // Optimization: if transparency becomes negligible, return zero
                 if (ktr.lowerThan(MIN_CALC_COLOR_K)) {
                     return Double3.ZERO;
                 }
@@ -361,5 +365,4 @@ public class SimpleRayTracer extends RayTracerBase {
         // Return the accumulated transparency
         return ktr;
     }
-
 }
