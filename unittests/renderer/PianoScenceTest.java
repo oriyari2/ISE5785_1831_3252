@@ -105,7 +105,7 @@ public class PianoScenceTest {
     void testStageCreation() {
         setupScene("Stage Creation Test");
         scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30))); // Basic light for component test
-        //buildStage(); // Call the helper method to build the stage
+        buildStage(); // Call the helper method to build the stage
 
         cameraBuilder
                 .setLocation(new Point(0, 500, 1000))
@@ -212,26 +212,26 @@ public class PianoScenceTest {
      * Helper method to build the stage.
      * This method is updated to reflect the new material properties and emission colors for the floor and walls.
      */
-//    private void buildStage() {
-//        // Stage floor - built using triangles as before
-//        for (int x = -2000; x < 2000; x += STAGE_TILE_SIZE) {
-//            for (int z = -1500; z < 1500; z += STAGE_TILE_SIZE) {
-//                scene.geometries.add(new Triangle(new Point(x, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(139, 90, 43)).setMaterial(stageMaterial));
-//                scene.geometries.add(new Triangle(new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(160, 105, 50)).setMaterial(stageMaterial));
-//            }
-//        }
-//
-//        // Base under piano
-//        scene.geometries.add(new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150)).setEmission(new Color(30, 20, 10)).setMaterial(stageMaterial));
-//
-//        // Back stage wall - horizontal rectangles side by side, alternating colors
-//        boolean toggleColor = false;
-//        for (int x = -2000; x < 2000; x += WALL_TILE_SIZE) {
-//            Color emissionColor = toggleColor ? new Color(120, 20, 20) : new Color(100, 15, 15);
-//            scene.geometries.add(new Polygon(new Point(x, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, 1800, WALL_Z_POSITION), new Point(x, 1800, WALL_Z_POSITION)).setEmission(emissionColor).setMaterial(wallMaterial));
-//            toggleColor = !toggleColor;
-//        }
-//    }
+    private void buildStage() {
+        // Stage floor - built using triangles as before
+        for (int x = -2000; x < 2000; x += STAGE_TILE_SIZE) {
+            for (int z = -1500; z < 1500; z += STAGE_TILE_SIZE) {
+                scene.geometries.add(new Triangle(new Point(x, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(139, 90, 43)).setMaterial(stageMaterial));
+                scene.geometries.add(new Triangle(new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(160, 105, 50)).setMaterial(stageMaterial));
+            }
+        }
+
+        // Base under piano
+        scene.geometries.add(new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150)).setEmission(new Color(30, 20, 10)).setMaterial(stageMaterial));
+
+        // Back stage wall - horizontal rectangles side by side, alternating colors
+        boolean toggleColor = false;
+        for (int x = -2000; x < 2000; x += WALL_TILE_SIZE) {
+            Color emissionColor = toggleColor ? new Color(120, 20, 20) : new Color(100, 15, 15);
+            scene.geometries.add(new Polygon(new Point(x, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, 1800, WALL_Z_POSITION), new Point(x, 1800, WALL_Z_POSITION)).setEmission(emissionColor).setMaterial(wallMaterial));
+            toggleColor = !toggleColor;
+        }
+    }
 
 
     /**
@@ -462,9 +462,9 @@ public class PianoScenceTest {
         // 3. Point Light:
         //    a. Chandelier Light: Illuminates the area around the chandelier.
         //       Reduced intensity to minimize unwanted reflections on the floor.
-//        scene.lights.add(
-//                new PointLight(new Color(120, 110, 100), new Point(0, 1200, -500)) // Significantly reduced intensity
-//                        .setKl(0.00008).setKq(0.00001)); // Slightly higher attenuation for local effect
+        scene.lights.add(
+                new PointLight(new Color(120, 110, 100), new Point(0, 1200, -500)) // Significantly reduced intensity
+                        .setKl(0.00008).setKq(0.00001)); // Slightly higher attenuation for local effect
 
         //    b. Subtle Fill Light (below stage): Very dim light to lift shadows from below.
         //       Kept subtle to avoid over-lighting.
@@ -512,17 +512,26 @@ public class PianoScenceTest {
     private void setupScene(String testName) {
         scene = new Scene(testName);
         cameraBuilder = Camera.getBuilder()
-                //.setSuperSamplingLevel(6)
-                //.setSamplingMethod(Camera.SamplingMethod.GRID)
-                .setIncludeOriginalRayInAA(false)
+//                --superSampling settings--
+
+//                .setSuperSamplingLevel(6)
+//                .setSamplingMethod(Camera.SamplingMethod.GRID)
+                .setIncludeOriginalRayInAA(true)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
                 .setVpDistance(1000)
                 .setVpSize(2500, 2500)
                 .setDebugPrint(0.1)
                 .setResolution(1000, 1000)
-                .setSamplingMethod(Camera.SamplingMethod.ADAPTIVE)
-                .setAdaptiveMaxLevel(4)
-                .setAdaptiveColorThreshold(5.0)
+//                -- adaptive sampling settings --
+//                .setSamplingMethod(Camera.SamplingMethod.ADAPTIVE)
+//                .setAdaptiveMaxLevel(3)
+//                .setAdaptiveColorThreshold(5)
+
+//                 --Jittered sampling settings--
+                .setSamplingMethod(Camera.SamplingMethod.JITTERED)  // Enable jittered sampling
+                .setJitterMagnitude(0.2)
+                .setJitterSeed(12345L)
+                .setSuperSamplingLevel(4)           // 4x4 grid
                 .setMultithreading(-2);
     }
 
@@ -531,7 +540,7 @@ public class PianoScenceTest {
         setupScene("Grand Piano On Stage Scene");
 
         // Call individual build methods to construct the full scene
-        //buildStage();
+        buildStage();
         buildGrandPianoBody();
         buildPianoLegs();
         buildKeyboard();

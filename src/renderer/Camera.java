@@ -67,9 +67,10 @@ public class Camera implements Cloneable {
      * ADAPTIVE: Adaptive supersampling based on color changes.
      */
     public enum SamplingMethod {
-        CENTER, // A single ray at the exact center of the pixel (no super-sampling benefit)
+        CENTER,  // A single ray at the exact center of the pixel (no super-sampling benefit)
         GRID,    // Uniform grid sampling within the pixel area
-        ADAPTIVE // Adaptive supersampling based on color changes
+        ADAPTIVE, // Adaptive supersampling based on color changes
+        JITTERED // Grid-based sampling with random jitter for better anti-aliasing quality
     }
 
     /** The sampling method to use for anti-aliasing */
@@ -81,8 +82,16 @@ public class Camera implements Cloneable {
     /** Maximum recursion level for adaptive supersampling */
     private int adaptiveMaxLevel = 3; // Default recursion depth
     /** Color difference threshold for adaptive supersampling subdivision */
-    private double adaptiveColorThreshold = 50.0; // Default color difference threshold (e.g., Euclidean distance in RGB)
+    private double adaptiveColorThreshold = 10.0; // Default color difference threshold (e.g., Euclidean distance in RGB)
 
+    /** Random jitter magnitude as a fraction of sub-pixel size (0.0 to 1.0) */
+    private double jitterMagnitude = 0.5; // Default to 50% of sub-pixel size
+
+    /** Random number generator for jitter calculations */
+    private java.util.Random jitterRandom = new java.util.Random();
+
+    /** Seed for reproducible jitter patterns (optional) */
+    private Long jitterSeed = null;
 
     /**
      * Private constructor to prevent direct instantiation.
@@ -217,6 +226,38 @@ public class Camera implements Cloneable {
             case ADAPTIVE:
                 // Start adaptive sampling with initial corner samples
                 adaptiveSampling(xMinPixel, xMaxPixel, yMinPixel, yMaxPixel, 0, rays);
+                break;
+            case JITTERED:
+                // Calculate sub-pixel dimensions
+                double jitterSubPixelWidth = pixelWidth / superSamplingLevel;
+                double jitterSubPixelHeight = pixelHeight / superSamplingLevel;
+
+                // Generate jittered grid of rays
+                for (int row = 0; row < superSamplingLevel; row++) {
+                    for (int col = 0; col < superSamplingLevel; col++) {
+                        // Calculate base position at center of sub-pixel
+                        double baseX = xMinPixel + (col + 0.5) * jitterSubPixelWidth;
+                        double baseY = yMinPixel + (row + 0.5) * jitterSubPixelHeight;
+
+                        // Calculate maximum jitter distance (fraction of sub-pixel size)
+                        double maxJitterX = jitterSubPixelWidth * jitterMagnitude * 0.5;
+                        double maxJitterY = jitterSubPixelHeight * jitterMagnitude * 0.5;
+
+                        // Generate random jitter within the allowed range
+                        double jitterX = (jitterRandom.nextDouble() - 0.5) * 2 * maxJitterX;
+                        double jitterY = (jitterRandom.nextDouble() - 0.5) * 2 * maxJitterY;
+
+                        // Apply jitter to base position
+                        double finalX = baseX + jitterX;
+                        double finalY = baseY + jitterY;
+
+                        // Clamp to ensure the jittered point stays within the original pixel bounds
+                        finalX = Math.max(xMinPixel, Math.min(xMaxPixel, finalX));
+                        finalY = Math.max(yMinPixel, Math.min(yMaxPixel, finalY));
+
+                        rays.add(constructSingleRayInternal(finalX, finalY));
+                    }
+                }
                 break;
         }
 
@@ -692,6 +733,73 @@ public class Camera implements Cloneable {
             return this;
         }
 
+        // --- jitter Builder methods ---
+
+        /**
+         * Sets the jitter magnitude for jittered sampling.
+         * The jitter magnitude determines how much random offset is applied to each sample point.
+         * A value of 0.0 means no jitter (equivalent to regular grid sampling).
+         * A value of 1.0 means maximum jitter (samples can be offset by up to half the sub-pixel size).
+         *
+         * @param magnitude The jitter magnitude as a fraction (0.0 to 1.0).
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the magnitude is not between 0.0 and 1.0.
+         */
+        public Builder setJitterMagnitude(double magnitude) {
+            if (magnitude < 0.0 || magnitude > 1.0) {
+                throw new IllegalArgumentException("Jitter magnitude must be between 0.0 and 1.0");
+            }
+            camera.jitterMagnitude = magnitude;
+            return this;
+        }
+
+        /**
+         * Sets the random seed for jittered sampling to ensure reproducible results.
+         * If no seed is set, the jitter pattern will be different each time.
+         *
+         * @param seed The random seed to use for jitter generation.
+         * @return The Builder instance.
+         */
+        public Builder setJitterSeed(long seed) {
+            camera.jitterSeed = seed;
+            camera.jitterRandom = new java.util.Random(seed);
+            return this;
+        }
+
+
+        /**
+         * Enables jittered sampling with default settings.
+         * This is a convenience method that sets the sampling method to JITTERED
+         * and configures reasonable default values for jitter parameters.
+         *
+         * @return The Builder instance.
+         */
+        public Builder enableJitteredSampling() {
+            camera.samplingMethod = SamplingMethod.JITTERED;
+            camera.jitterMagnitude = 0.5; // 50% jitter magnitude
+            return this;
+        }
+
+
+        /**
+         * Enables jittered sampling with custom jitter magnitude.
+         * This is a convenience method that sets the sampling method to JITTERED
+         * and sets the specified jitter magnitude.
+         *
+         * @param magnitude The jitter magnitude as a fraction (0.0 to 1.0).
+         * @return The Builder instance.
+         * @throws IllegalArgumentException if the magnitude is not between 0.0 and 1.0.
+         */
+        public Builder enableJitteredSampling(double magnitude) {
+            if (magnitude < 0.0 || magnitude > 1.0) {
+                throw new IllegalArgumentException("Jitter magnitude must be between 0.0 and 1.0");
+            }
+            camera.samplingMethod = SamplingMethod.JITTERED;
+            camera.jitterMagnitude = magnitude;
+            return this;
+        }
+
+
         /**
          * Builds and returns the constructed Camera object.
          * This method ensures immutability by cloning the Camera instance.
@@ -782,6 +890,11 @@ public class Camera implements Cloneable {
 
             // Clear the target to avoid retaining unnecessary state in the builder after validation
             target = null;
+
+            if (camera.jitterSeed != null) {
+                camera.jitterRandom = new java.util.Random(camera.jitterSeed);
+            }
+
         }
     }
 }
