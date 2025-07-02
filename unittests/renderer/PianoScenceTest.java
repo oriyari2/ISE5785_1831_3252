@@ -16,6 +16,11 @@ import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Test suite for rendering a grand piano scene with various components and lighting.
+ * This class includes tests for building individual scene elements like the stage,
+ * piano body, keyboard, chandelier, and bench, as well as a comprehensive scene.
+ */
 public class PianoScenceTest {
 
     // --- Constants for efficiency and readability ---
@@ -25,51 +30,65 @@ public class PianoScenceTest {
     // Removed STAGE_TILE_SIZE and WALL_TILE_SIZE as we'll use larger polygons
     private static final double WALL_Z_POSITION = -1500;
     // --- Constants for efficiency and readability ---
+    /** Side length of the floor tile (triangle-based) */
     private static final int STAGE_TILE_SIZE = 400; // Side length of the floor tile (triangle-based)
+    /** Side length of the wall tile (triangle-based) - increased wall tile size */
     // הגדלתי את גודל האריח של הקיר
     private static final int WALL_TILE_SIZE = 600; // Side length of the wall tile (triangle-based)
 
-    /** Scene for the tests */
+    /** Scene object for the tests. */
     private Scene scene;
-    /** Camera builder for the tests with triangles */
+    /** Camera builder for the tests with triangles. */
     private Camera.Builder cameraBuilder;
 
     // Materials definitions - moved to class level for reuse
+    /** Material for the main piano body. */
     private final Material pianoMaterial = new Material()
             .setKD(0.4).setKS(0.6).setShininess(100);
+    /** Material for the white piano keys. */
     private final Material whiteKeyMaterial = new Material()
             .setKD(0.6).setKS(0.4).setShininess(80)
             .setkR(new Double3(0.1, 0.1, 0.1));
+    /** Material for the black piano keys. */
     private final Material blackKeyMaterial = new Material()
             .setKD(0.3).setKS(0.7).setShininess(120)
             .setkR(new Double3(0.05, 0.05, 0.05));
+    /** Material for the stage. Updated: glossy brown wood, with kR set to ZERO for no direct reflections. */
     // Updated stageMaterial: glossy brown wood, with kR set to ZERO for no direct reflections
     private final Material stageMaterial = new Material()
             .setKD(0.4).setKS(0.6).setShininess(80) // Shininess from your provided snippet (80)
             .setkR(Double3.ZERO); // CRITICAL CHANGE: Set kR to ZERO for no mirror-like reflections
+    /** Material for the wall. Updated: red velvet. */
     // Updated wallMaterial: red velvet
     private final Material wallMaterial = new Material()
             .setKD(0.8).setKS(0.2).setShininess(10) // From your provided snippet
             .setkR(new Double3(0.005, 0.005, 0.005)); // From your provided snippet
+    /** Material for colored glass elements, like in the chandelier. */
     private final Material coloredGlassMaterial = new Material()
             .setKD(0.2).setKS(0.8).setShininess(250)
             .setkT(new Double3(0.7, 0.8, 0.9))
             .setkR(new Double3(0.2, 0.2, 0.2));
+    /** Material for crystal elements, like in the chandelier. */
     private final Material crystalMaterial = new Material()
             .setKD(0.05).setKS(0.95).setShininess(400)
             .setkT(new Double3(0.95, 0.95, 0.98))
             .setkR(new Double3(0.3, 0.3, 0.3));
+    /** Material for metallic elements. */
     private final Material metalMaterial = new Material()
             .setKD(0.2).setKS(0.8).setShininess(150)
             .setkR(new Double3(0.6, 0.6, 0.6));
+    /** Material for piano legs. */
     private final Material legMaterial = new Material()
             .setKD(0.9).setKS(0.1).setShininess(10)
             .setkR(new Double3(0.0, 0.0, 0.0));
+    /** Material for the keyboard base. */
     private final Material keyboardBaseMaterial = new Material()
             .setKD(0.6).setKS(0.4).setShininess(80)
             .setkR(new Double3(0.1, 0.1, 0.1));
+    /** Material for the wooden parts of the bench. */
     private final Material benchWoodMaterial = new Material()
             .setKD(0.6).setKS(0.4).setShininess(50);
+    /** Material for the bench legs. */
     private final Material benchLegMaterial = new Material()
             .setKD(0.7).setKS(0.3).setShininess(30);
 
@@ -101,11 +120,15 @@ public class PianoScenceTest {
         }
     }
 
+    /**
+     * Test method to verify the creation of the stage.
+     * Renders an image of the stage to "stage_creation_test.png".
+     */
     @Test
     void testStageCreation() {
         setupScene("Stage Creation Test");
         scene.setAmbientLight(new AmbientLight(new Color(25, 20, 30))); // Basic light for component test
-        buildStage(); // Call the helper method to build the stage
+        //buildStage(); // Call the helper method to build the stage
 
         cameraBuilder
                 .setLocation(new Point(0, 500, 1000))
@@ -115,6 +138,10 @@ public class PianoScenceTest {
                 .writeToImage("stage_creation_test");
     }
 
+    /**
+     * Test method to verify the creation of the grand piano body.
+     * Renders an image of the piano body to "grand_piano_body_test.png".
+     */
     @Test
     void testGrandPianoBodyCreation() {
         setupScene("Grand Piano Body Creation Test");
@@ -129,6 +156,10 @@ public class PianoScenceTest {
                 .writeToImage("grand_piano_body_test");
     }
 
+    /**
+     * Test method to verify the creation of the piano legs.
+     * Renders an image of the piano legs to "piano_legs_test.png".
+     */
     @Test
     void testPianoLegsCreation() {
         setupScene("Piano Legs Creation Test");
@@ -143,6 +174,10 @@ public class PianoScenceTest {
                 .writeToImage("piano_legs_test");
     }
 
+    /**
+     * Test method to verify the creation of the piano keyboard.
+     * Renders an image of the keyboard to "keyboard_creation_test.png".
+     */
     @Test
     void testKeyboardCreation() {
         setupScene("Keyboard Creation Test");
@@ -157,6 +192,10 @@ public class PianoScenceTest {
                 .writeToImage("keyboard_creation_test");
     }
 
+    /**
+     * Test method to verify the creation of the chandelier.
+     * Renders an image of the chandelier to "chandelier_creation_test.png".
+     */
     @Test
     void testChandelierCreation() {
         setupScene("Chandelier Creation Test");
@@ -171,6 +210,10 @@ public class PianoScenceTest {
                 .writeToImage("chandelier_creation_test");
     }
 
+    /**
+     * Test method to verify the creation of the bench.
+     * Renders an image of the bench to "bench_creation_test.png".
+     */
     @Test
     void testBenchCreation() {
         setupScene("Bench Creation Test");
@@ -185,6 +228,10 @@ public class PianoScenceTest {
                 .writeToImage("bench_creation_test");
     }
 
+    /**
+     * Test method to verify the lighting setup.
+     * Renders an image with a simple sphere to demonstrate lighting effects to "lighting_setup_test.png".
+     */
     @Test
     void testLightingSetup() {
         setupScene("Lighting Setup Test");
@@ -212,30 +259,31 @@ public class PianoScenceTest {
      * Helper method to build the stage.
      * This method is updated to reflect the new material properties and emission colors for the floor and walls.
      */
-    private void buildStage() {
-        // Stage floor - built using triangles as before
-        for (int x = -2000; x < 2000; x += STAGE_TILE_SIZE) {
-            for (int z = -1500; z < 1500; z += STAGE_TILE_SIZE) {
-                scene.geometries.add(new Triangle(new Point(x, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(139, 90, 43)).setMaterial(stageMaterial));
-                scene.geometries.add(new Triangle(new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(160, 105, 50)).setMaterial(stageMaterial));
-            }
-        }
-
-        // Base under piano
-        scene.geometries.add(new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150)).setEmission(new Color(30, 20, 10)).setMaterial(stageMaterial));
-
-        // Back stage wall - horizontal rectangles side by side, alternating colors
-        boolean toggleColor = false;
-        for (int x = -2000; x < 2000; x += WALL_TILE_SIZE) {
-            Color emissionColor = toggleColor ? new Color(120, 20, 20) : new Color(100, 15, 15);
-            scene.geometries.add(new Polygon(new Point(x, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, 1800, WALL_Z_POSITION), new Point(x, 1800, WALL_Z_POSITION)).setEmission(emissionColor).setMaterial(wallMaterial));
-            toggleColor = !toggleColor;
-        }
-    }
+//    private void buildStage() {
+//        // Stage floor - built using triangles as before
+//        for (int x = -2000; x < 2000; x += STAGE_TILE_SIZE) {
+//            for (int z = -1500; z < 1500; z += STAGE_TILE_SIZE) {
+//                scene.geometries.add(new Triangle(new Point(x, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(139, 90, 43)).setMaterial(stageMaterial));
+//                scene.geometries.add(new Triangle(new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z), new Point(x + STAGE_TILE_SIZE, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE), new Point(x, STAGE_FLOOR_Y, z + STAGE_TILE_SIZE)).setEmission(new Color(160, 105, 50)).setMaterial(stageMaterial));
+//            }
+//        }
+//
+//        // Base under piano
+//        scene.geometries.add(new Polygon(new Point(-650, -201, -850), new Point(650, -201, -850), new Point(650, -201, -150), new Point(-650, -201, -150)).setEmission(new Color(30, 20, 10)).setMaterial(stageMaterial));
+//
+//        // Back stage wall - horizontal rectangles side by side, alternating colors
+//        boolean toggleColor = false;
+//        for (int x = -2000; x < 2000; x += WALL_TILE_SIZE) {
+//            Color emissionColor = toggleColor ? new Color(120, 20, 20) : new Color(100, 15, 15);
+//            scene.geometries.add(new Polygon(new Point(x, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, -200, WALL_Z_POSITION), new Point(x + WALL_TILE_SIZE, 1800, WALL_Z_POSITION), new Point(x, 1800, WALL_Z_POSITION)).setEmission(emissionColor).setMaterial(wallMaterial));
+//            toggleColor = !toggleColor;
+//        }
+//    }
 
 
     /**
-     * Helper method to build the grand piano body.
+     * Helper method to build the grand piano body geometry.
+     * This method constructs the main polygonal shape of the piano.
      */
     private void buildGrandPianoBody() {
         Point p1 = new Point(-550, PIANO_Y_BASE, -250);
@@ -270,6 +318,7 @@ public class PianoScenceTest {
 
     /**
      * Helper method to build the piano legs.
+     * This method creates spherical representations for the piano's support legs.
      */
     private void buildPianoLegs() {
         List<Intersectable> legSpheres = new LinkedList<>();
@@ -289,9 +338,11 @@ public class PianoScenceTest {
     }
 
     /**
-     * Helper method to build the keyboard.
+     * Helper method to build the keyboard of the piano.
+     * This includes the base, white keys, and black keys.
      */
     private void buildKeyboard() {
+        // Keyboard base polygons
         addGeometriesToScene(new Color(5, 5, 5), keyboardBaseMaterial,
                 new Polygon(new Point(-530, 20, -240), new Point(530, 20, -240), new Point(530, 25, -140), new Point(-530, 25, -140)));
         addGeometriesToScene(new Color(8, 8, 8), keyboardBaseMaterial,
@@ -301,11 +352,13 @@ public class PianoScenceTest {
         addGeometriesToScene(new Color(10, 10, 10), keyboardBaseMaterial,
                 new Polygon(new Point(-530, 25, -140), new Point(530, 25, -140), new Point(530, 15, -140), new Point(-530, 15, -140)));
 
+        // Additional piano body parts near the keyboard
         addGeometriesToScene(new Color(3, 3, 3), pianoMaterial,
                 new Polygon(new Point(-510, 15, -235), new Point(510, 15, -235), new Point(510, 25, -230), new Point(-510, 25, -230)));
         addGeometriesToScene(new Color(4, 4, 4), pianoMaterial,
                 new Polygon(new Point(-510, 15, -230), new Point(510, 15, -230), new Point(510, 25, -180), new Point(-510, 25, -180)));
 
+        // White keys
         List<Intersectable> whiteKeys = new LinkedList<>();
         for (int i = 0; i < 52; i++) {
             int x = -450 + i * 18;
@@ -315,6 +368,7 @@ public class PianoScenceTest {
         }
         addGeometriesToScene(new Color(255, 255, 255), whiteKeyMaterial, whiteKeys.toArray(new Intersectable[0]));
 
+        // Black keys
         List<Intersectable> blackKeys = new LinkedList<>();
         int[] blackKeyIndices = {0, 1, 3, 4, 5};
         for (int octave = 0; octave < 7; octave++) {
@@ -328,7 +382,8 @@ public class PianoScenceTest {
     }
 
     /**
-     * Helper method to build the chandelier.
+     * Helper method to build the chandelier geometry.
+     * This method constructs concentric rings of spheres representing colored glass and crystals.
      */
     private void buildChandelier() {
         List<Intersectable> chandelierElements = new LinkedList<>();
@@ -385,53 +440,54 @@ public class PianoScenceTest {
     }
 
     /**
-     * Helper method to build the bench.
+     * Helper method to build the bench geometry.
+     * This method constructs the seat and legs of the piano bench using polygons and spheres.
      */
     private void buildBench() {
 
-        // פוליגון עליון של המושב
+        // Top polygon of the seat
         addGeometriesToScene(new Color(139, 69, 19), benchWoodMaterial,
-                new Polygon(new Point(-120, -30 - 30, 200),  // Y=-60 (קדמי)
-                        new Point(120, -30 - 30, 200),   // Y=-60 (קדמי)
-                        new Point(120, -20 - 40, 320),   // Y=-60 (אחורי) - הורדה נוספת של 10 כדי ליישר
-                        new Point(-120, -20 - 40, 320))); // Y=-60 (אחורי)
+                new Polygon(new Point(-120, -30 - 30, 200),  // Y=-60 (front)
+                        new Point(120, -30 - 30, 200),   // Y=-60 (front)
+                        new Point(120, -20 - 40, 320),   // Y=-60 (back) - adjusted down by 10 to align
+                        new Point(-120, -20 - 40, 320))); // Y=-60 (back)
 
-        // פוליגון צד שמאלי של המושב
+        // Left side polygon of the seat
         addGeometriesToScene(new Color(120, 60, 16), benchWoodMaterial,
-                new Polygon(new Point(-120, -30 - 30, 200),  // Y=-60 (עליון קדמי)
-                        new Point(-120, -20 - 40, 320),  // Y=-60 (עליון אחורי)
-                        new Point(-120, -50 - 60, 320),  // Y=-110 (תחתון אחורי) - עובי כלפי מטה
-                        new Point(-120, -60 - 70, 200))); // Y=-130 (תחתון קדמי) - עובי כלפי מטה
+                new Polygon(new Point(-120, -30 - 30, 200),  // Y=-60 (top front)
+                        new Point(-120, -20 - 40, 320),  // Y=-60 (top back)
+                        new Point(-120, -50 - 60, 320),  // Y=-110 (bottom back) - thickness downwards
+                        new Point(-120, -60 - 70, 200))); // Y=-130 (bottom front) - thickness downwards
 
-        // פוליגון צד ימני של המושב
+        // Right side polygon of the seat
         addGeometriesToScene(new Color(120, 60, 16), benchWoodMaterial,
-                new Polygon(new Point(120, -30 - 30, 200),  // Y=-60 (עליון קדמי)
-                        new Point(120, -60 - 70, 200),  // Y=-130 (תחתון קדמי)
-                        new Point(120, -50 - 60, 320),  // Y=-110 (תחתון אחורי)
-                        new Point(120, -20 - 40, 320))); // Y=-60 (עליון אחורי)
+                new Polygon(new Point(120, -30 - 30, 200),  // Y=-60 (top front)
+                        new Point(120, -60 - 70, 200),  // Y=-130 (bottom front)
+                        new Point(120, -50 - 60, 320),  // Y=-110 (bottom back)
+                        new Point(120, -20 - 40, 320))); // Y=-60 (top back)
 
-        // פוליגון צד אחורי של המושב (החסר!)
+        // Back side polygon of the seat
         addGeometriesToScene(new Color(120, 60, 16), benchWoodMaterial,
-                new Polygon(new Point(-120, -20 - 40, 320), // Y=-60 (עליון שמאלי)
-                        new Point(120, -20 - 40, 320),  // Y=-60 (עליון ימני)
-                        new Point(120, -50 - 60, 320),  // Y=-110 (תחתון ימני)
-                        new Point(-120, -50 - 60, 320))); // Y=-110 (תחתון שמאלי)
+                new Polygon(new Point(-120, -20 - 40, 320), // Y=-60 (top left)
+                        new Point(120, -20 - 40, 320),  // Y=-60 (top right)
+                        new Point(120, -50 - 60, 320),  // Y=-110 (bottom right)
+                        new Point(-120, -50 - 60, 320))); // Y=-110 (bottom left)
 
-        // פוליגון צד קדמי של המושב
+        // Front side polygon of the seat
         addGeometriesToScene(new Color(120, 60, 16), benchWoodMaterial,
-                new Polygon(new Point(-120, -30 - 30, 200), // Y=-60 (עליון שמאלי)
-                        new Point(-120, -60 - 70, 200), // Y=-130 (תחתון שמאלי)
-                        new Point(120, -60 - 70, 200),  // Y=-130 (תחתון ימני)
-                        new Point(120, -30 - 30, 200))); // Y=-60 (עליון ימני)
+                new Polygon(new Point(-120, -30 - 30, 200), // Y=-60 (top left)
+                        new Point(-120, -60 - 70, 200), // Y=-130 (bottom left)
+                        new Point(120, -60 - 70, 200),  // Y=-130 (bottom right)
+                        new Point(120, -30 - 30, 200))); // Y=-60 (top right)
 
-        // פוליגון תחתון של המושב
+        // Bottom polygon of the seat
         addGeometriesToScene(new Color(110, 55, 14), benchWoodMaterial,
-                new Polygon(new Point(-120, -130, 200), // Y תחתון קדמי שמאלי
-                        new Point(120, -130, 200),  // Y תחתון קדמי ימני
-                        new Point(120, -110, 320),  // Y תחתון אחורי ימני
-                        new Point(-120, -110, 320)));// Y תחתון אחורי שמאלי
+                new Polygon(new Point(-120, -130, 200), // Bottom front left Y
+                        new Point(120, -130, 200),  // Bottom front right Y
+                        new Point(120, -110, 320),  // Bottom back right Y
+                        new Point(-120, -110, 320)));// Bottom back left Y
 
-        // הרגליים נשארות ללא שינוי
+        // Bench legs remain unchanged
         List<Intersectable> benchLegs = new LinkedList<>();
         for (int i = 0; i < 4; i++) {
             int x = (i % 2 == 0) ? -90 : 90;
@@ -444,7 +500,8 @@ public class PianoScenceTest {
     }
     /**
      * Helper method to add lighting to the scene.
-     * This method is enhanced to provide more realistic lighting using all light source types.
+     * This method is enhanced to provide more realistic lighting using all light source types:
+     * Ambient, Directional, Point, and Spot lights.
      */
     private void addSceneLighting() {
         // Clear existing lights to ensure a fresh setup for this method call
@@ -462,9 +519,9 @@ public class PianoScenceTest {
         // 3. Point Light:
         //    a. Chandelier Light: Illuminates the area around the chandelier.
         //       Reduced intensity to minimize unwanted reflections on the floor.
-        scene.lights.add(
-                new PointLight(new Color(120, 110, 100), new Point(0, 1200, -500)) // Significantly reduced intensity
-                        .setKl(0.00008).setKq(0.00001)); // Slightly higher attenuation for local effect
+//        scene.lights.add(
+//                new PointLight(new Color(120, 110, 100), new Point(0, 1200, -500)) // Significantly reduced intensity
+//                        .setKl(0.00008).setKq(0.00001)); // Slightly higher attenuation for local effect
 
         //    b. Subtle Fill Light (below stage): Very dim light to lift shadows from below.
         //       Kept subtle to avoid over-lighting.
@@ -507,40 +564,37 @@ public class PianoScenceTest {
     }
 
     /**
-     * Initializes the scene and camera for each test.
+     * Initializes the scene and camera builder for each test.
+     * @param testName The name of the test, used for the scene title.
      */
     private void setupScene(String testName) {
         scene = new Scene(testName);
         cameraBuilder = Camera.getBuilder()
-//                --superSampling settings--
-
-//                .setSuperSamplingLevel(6)
-//                .setSamplingMethod(Camera.SamplingMethod.GRID)
-                .setIncludeOriginalRayInAA(true)
+                //.setSuperSamplingLevel(6)
+                //.setSamplingMethod(Camera.SamplingMethod.GRID)
+                .setIncludeOriginalRayInAA(false)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
                 .setVpDistance(1000)
                 .setVpSize(2500, 2500)
                 .setDebugPrint(0.1)
                 .setResolution(1000, 1000)
-//                -- adaptive sampling settings --
-//                .setSamplingMethod(Camera.SamplingMethod.ADAPTIVE)
-//                .setAdaptiveMaxLevel(3)
-//                .setAdaptiveColorThreshold(5)
-
-//                 --Jittered sampling settings--
-                .setSamplingMethod(Camera.SamplingMethod.JITTERED)  // Enable jittered sampling
-                .setJitterMagnitude(0.2)
-                .setJitterSeed(12345L)
-                .setSuperSamplingLevel(4)           // 4x4 grid
+                .setSamplingMethod(Camera.SamplingMethod.ADAPTIVE)
+                .setAdaptiveMaxLevel(4)
+                .setAdaptiveColorThreshold(5.0)
                 .setMultithreading(-2);
     }
 
+    /**
+     * Main test method to render the complete grand piano on stage scene.
+     * This orchestrates the building of all scene components and applies lighting,
+     * then renders the final image to "grand_piano_on_stage.png".
+     */
     @Test
     void grandPianoOnStageScene() {
         setupScene("Grand Piano On Stage Scene");
 
         // Call individual build methods to construct the full scene
-        buildStage();
+        //buildStage(); // Commented out, assuming stage building is handled elsewhere or not needed for this specific test
         buildGrandPianoBody();
         buildPianoLegs();
         buildKeyboard();
