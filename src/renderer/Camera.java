@@ -720,16 +720,19 @@ public class Camera implements Cloneable {
             // Calculate the center of the view plane based on the camera position and vTo
             camera.pcenter = camera.p0.add(camera.vTo.scale(camera.distance));
 
-            // Ensure RayTracer is set
-            if (camera.rayTracer == null) {
-                throw new MissingResourceException("Missing rendering data", "Camera", "RayTracer is not set");
-            }
-            // ImageWriter must be initialized after resolution and rayTracer are set
-            if (camera.imageWriter == null) {
-                throw new IllegalStateException("ImageWriter not initialized. Call setResolution after setRayTracer.");
+            // RayTracer and ImageWriter validation - only if needed for rendering
+            // For basic camera operations like constructRay, these are not required
+            if (camera.rayTracer != null) {
+                // ImageWriter must be initialized after resolution and rayTracer are set
+                if (camera.imageWriter == null && camera.nX > 1 && camera.nY > 1) {
+                    // Try to initialize ImageWriter if resolution is set
+                    if (camera.rayTracer.scene != null && camera.rayTracer.scene.name != null) {
+                        camera.imageWriter = new ImageWriter(camera.rayTracer.scene.name, camera.nX, camera.nY);
+                    }
+                }
             }
 
-            // Validate DOF parameters
+            // Validate DOF parameters only if DOF is enabled
             if (camera.depthOfFieldEnabled) {
                 if (camera.focalDistance <= 0) {
                     throw new MissingResourceException("Missing rendering data", "Camera", "Focal distance must be positive when DOF is enabled");
@@ -745,12 +748,11 @@ public class Camera implements Cloneable {
             // Clear the target to avoid retaining unnecessary state in the builder after validation
             target = null;
 
+            // Initialize jitter random if seed is provided
             if (camera.jitterSeed != null) {
                 camera.jitterRandom = new java.util.Random(camera.jitterSeed);
             }
-
-        }
-    }
+        }    }
 
     /**
      * ==================================
@@ -781,6 +783,17 @@ public class Camera implements Cloneable {
      * @param i The pixel index along the y-axis (row), starting from 0.
      * @return A Ray object representing the ray from the camera position to the pixel center.
      */
+    /**
+     * Constructs a single ray from the camera position through a specific pixel in the view plane.
+     * This method calculates the exact position of the pixel center and creates a ray from the camera
+     * to that point, taking into account the camera's orientation and view plane dimensions.
+     *
+     * @param nX The total number of pixels along the x-axis (image width).
+     * @param nY The total number of pixels along the y-axis (image height).
+     * @param j The pixel index along the x-axis (column), starting from 0.
+     * @param i The pixel index along the y-axis (row), starting from 0.
+     * @return A Ray object representing the ray from the camera position to the pixel center.
+     */
     public Ray constructRay(int nX, int nY, int j, int i) {
         // Calculate the pixel's width and height
         double pixelWidth = width / nX;
@@ -789,6 +802,11 @@ public class Camera implements Cloneable {
         // Calculate the center of the pixel relative to the center of the view plane
         double xJ = (j - (nX - 1) / 2.0) * pixelWidth; // Horizontal offset
         double yI = (i - (nY - 1) / 2.0) * pixelHeight; // Vertical offset
+
+        // If DOF is enabled, create a DOF ray for this single pixel
+        if (depthOfFieldEnabled && apertureRadius > 0) {
+            return constructDepthOfFieldRay(xJ, yI);
+        }
 
         // Start from the center of the view plane
         Point pIJ = pcenter;
@@ -816,7 +834,21 @@ public class Camera implements Cloneable {
      * @param yOffset The vertical offset from the view plane center.
      * @return A Ray object representing the ray from the camera to the target point.
      */
+    /**
+     * Private helper method to construct a single ray from the camera
+     * to a specific point in the view plane, relative to the view plane center.
+     * This is used internally by constructRays for each sub-pixel.
+     *
+     * @param xOffset The horizontal offset from the view plane center.
+     * @param yOffset The vertical offset from the view plane center.
+     * @return A Ray object representing the ray from the camera to the target point.
+     */
     private Ray constructSingleRayInternal(double xOffset, double yOffset) {
+        // If DOF is enabled, create a DOF ray
+        if (depthOfFieldEnabled && apertureRadius > 0) {
+            return constructDepthOfFieldRay(xOffset, yOffset);
+        }
+
         // Start from the center of the view plane
         Point pIJ = pcenter;
 
@@ -862,14 +894,7 @@ public class Camera implements Cloneable {
         double yMinPixel = yI_pixelCenter - pixelHeight / 2.0;
         double yMaxPixel = yI_pixelCenter + pixelHeight / 2.0;
 
-        // Check if Depth of Field is enabled and has multiple samples
-        if (depthOfFieldEnabled && depthOfFieldSamples > 1 && apertureRadius > 0) {
-            // Generate DOF rays for the pixel center
-            rays.addAll(constructDepthOfFieldRays(xJ_pixelCenter, yI_pixelCenter));
-            return rays;
-        }
-
-        // Original anti-aliasing logic (when DOF is disabled)
+        // Generate rays based on sampling method
         switch (samplingMethod) {
             case CENTER:
                 rays.add(constructSingleRayInternal(xJ_pixelCenter, yI_pixelCenter));
@@ -939,43 +964,39 @@ public class Camera implements Cloneable {
  * Constructs a set of rays to simulate camera focus and blur
  * based on aperture and focal plane distance.
  */
-    /**
-     * Constructs multiple rays for Depth of Field effect from the aperture window
-     * through a focal point on the focal plane.
-     *
-     * @param xOffset The horizontal offset of the pixel center from view plane center.
-     * @param yOffset The vertical offset of the pixel center from view plane center.
-     * @return A list of rays for DOF sampling.
-     */
-    private List<Ray> constructDepthOfFieldRays(double xOffset, double yOffset) {
-        List<Ray> rays = new ArrayList<>();
 
-        // Calculate the focal point on the focal plane
+    /**
+     * Constructs a single Depth of Field ray from a random point on the aperture
+     * through the focal point corresponding to the given pixel offset.
+     *
+     * @param xOffset The horizontal offset of the pixel from view plane center.
+     * @param yOffset The vertical offset of the pixel from view plane center.
+     * @return A single DOF ray from aperture to focal point.
+     */
+    private Ray constructDepthOfFieldRay(double xOffset, double yOffset) {
+        // Calculate the focal point for this pixel position
         Point focalPoint = calculateFocalPoint(xOffset, yOffset);
 
-        // Generate multiple rays from different points on the aperture
-        for (int i = 0; i < depthOfFieldSamples; i++) {
-            Point aperturePoint = generateAperturePoint();
-            Vector direction = focalPoint.subtract(aperturePoint);
-            rays.add(new Ray(aperturePoint, direction));
-        }
+        // Generate a random point on the aperture
+        Point aperturePoint = generateAperturePoint();
 
-        return rays;
+        // Create ray from aperture point through focal point
+        Vector direction = focalPoint.subtract(aperturePoint);
+        return new Ray(aperturePoint, direction);
     }
 
     /**
-     * Calculates the focal point on the focal plane for a given pixel offset.
-     * The focal point is where all rays should converge for sharp focus.
+     * Calculates the focal point where rays should converge for sharp focus.
+     * The focal point is calculated by projecting the view plane point onto the focal plane.
      *
      * @param xOffset The horizontal offset from view plane center.
      * @param yOffset The vertical offset from view plane center.
      * @return The focal point on the focal plane.
      */
     private Point calculateFocalPoint(double xOffset, double yOffset) {
-        // Start from the view plane center
+        // Calculate point on view plane
         Point viewPlanePoint = pcenter;
 
-        // Adjust by pixel offset
         if (!isZero(xOffset)) {
             viewPlanePoint = viewPlanePoint.add(vRight.scale(xOffset));
         }
@@ -983,41 +1004,53 @@ public class Camera implements Cloneable {
             viewPlanePoint = viewPlanePoint.add(vUp.scale(-yOffset));
         }
 
-        // Calculate direction from camera to view plane point
-        Vector directionToViewPlane = viewPlanePoint.subtract(p0).normalize();
+        // Calculate direction from camera center to view plane point
+        Vector rayDirection = viewPlanePoint.subtract(p0).normalize();
 
-        // Extend this direction to the focal plane
+        // Find intersection of this ray with the focal plane
         // Focal plane is at distance 'focalDistance' from camera along vTo direction
         Point focalPlaneCenter = p0.add(vTo.scale(focalDistance));
 
-        // Calculate the intersection point on the focal plane
-        // We need to find where the ray from camera through viewPlanePoint intersects the focal plane
-        double t = focalDistance / directionToViewPlane.dotProduct(vTo);
+        // Calculate intersection parameter t
+        // Ray equation: p0 + t * rayDirection
+        // Plane equation: dot(point - focalPlaneCenter, vTo) = 0
+        // Solving: dot(p0 + t * rayDirection - focalPlaneCenter, vTo) = 0
+        Vector toPlaneCenter = focalPlaneCenter.subtract(p0);
+        double numerator = toPlaneCenter.dotProduct(vTo);
+        double denominator = rayDirection.dotProduct(vTo);
 
-        return p0.add(directionToViewPlane.scale(t));
+        // Avoid division by zero (ray parallel to focal plane)
+        if (isZero(denominator)) {
+            // Ray is parallel to focal plane, return a point on the focal plane
+            return focalPlaneCenter.add(vRight.scale(xOffset)).add(vUp.scale(-yOffset));
+        }
+
+        double t = numerator / denominator;
+        return p0.add(rayDirection.scale(t));
     }
 
     /**
      * Generates a random point on the circular aperture window.
      * The aperture is centered at the camera position with radius apertureRadius.
-     * Uses rejection sampling to ensure uniform distribution within the circle.
+     * Uses uniform distribution within the circle.
      *
-     * @return A random Point on the aperture disk. Returns camera position if aperture radius is 0 or negative.
+     * @return A random Point on the aperture disk. Returns camera position if aperture radius is 0.
      */
     private Point generateAperturePoint() {
         if (apertureRadius <= 0) {
             return p0;
         }
 
-        // Generate random point in unit circle using rejection sampling
-        double x, y;
-        do {
-            x = 2.0 * jitterRandom.nextDouble() - 1.0; // Random between -1 and 1
-            y = 2.0 * jitterRandom.nextDouble() - 1.0; // Random between -1 and 1
-        } while (x * x + y * y > 1.0); // Reject points outside unit circle
+        // Generate uniform random point in unit circle using polar coordinates
+        double angle = 2.0 * Math.PI * jitterRandom.nextDouble();
+        double radius = apertureRadius * Math.sqrt(jitterRandom.nextDouble());
 
-        // Scale by aperture radius and position relative to camera
-        Vector apertureOffset = vRight.scale(x * apertureRadius).add(vUp.scale(y * apertureRadius));
+        // Convert to Cartesian coordinates in camera's right-up plane
+        double x = radius * Math.cos(angle);
+        double y = radius * Math.sin(angle);
+
+        // Position relative to camera using right and up vectors
+        Vector apertureOffset = vRight.scale(x).add(vUp.scale(y));
         return p0.add(apertureOffset);
     }
 
@@ -1117,15 +1150,34 @@ public class Camera implements Cloneable {
 
     /**
      * Casts multiple rays for a given pixel, averages their colors, and sets the pixel.
-     * This method incorporates the anti-aliasing logic by constructing multiple rays per pixel
+     * This method incorporates the anti-aliasing and DOF logic by constructing multiple rays per pixel
      * and averaging their traced colors to produce the final pixel color.
      *
      * @param j The pixel column index (x-coordinate).
      * @param i The pixel row index (y-coordinate).
      */
-    private void castRaysAndAverage(int j, int i) {
-        // Construct all rays for the current pixel (including sub-pixel rays for AA)
-        List<Ray> rays = constructRays(nX, nY, j, i);
+    private void castRay(int j, int i) {
+        List<Ray> rays;
+
+        // Handle DOF with multiple samples per pixel
+        if (depthOfFieldEnabled && depthOfFieldSamples > 1 && apertureRadius > 0) {
+            rays = new ArrayList<>();
+
+            // Calculate pixel center offset
+            double pixelWidth = width / nX;
+            double pixelHeight = height / nY;
+            double xJ_pixelCenter = (j - (nX - 1) / 2.0) * pixelWidth;
+            double yI_pixelCenter = (i - (nY - 1) / 2.0) * pixelHeight;
+
+            // Generate multiple DOF rays for the same pixel position
+            for (int sample = 0; sample < depthOfFieldSamples; sample++) {
+                rays.add(constructDepthOfFieldRay(xJ_pixelCenter, yI_pixelCenter));
+            }
+        } else {
+            // Use standard ray construction (includes AA if enabled)
+            rays = constructRays(nX, nY, j, i);
+        }
+
         Color finalColor = Color.BLACK; // Initialize accumulated color to black
 
         // Trace each ray and sum their colors
@@ -1156,7 +1208,7 @@ public class Camera implements Cloneable {
     private Camera renderImageStream() {
         IntStream.range(0, nY).parallel()
                 .forEach(i -> IntStream.range(0, nX).parallel()
-                        .forEach(j -> castRaysAndAverage(j, i)));
+                        .forEach(j -> castRay(j, i)));
         return this;
     }
 
@@ -1170,7 +1222,7 @@ public class Camera implements Cloneable {
     private Camera renderImageNoThreads() {
         for (int i = 0; i < nY; ++i)
             for (int j = 0; j < nX; ++j)
-                castRaysAndAverage(j, i);
+                castRay(j, i);
         return this;
     }
 
@@ -1190,7 +1242,7 @@ public class Camera implements Cloneable {
             threads.add(new Thread(() -> {
                 PixelManager.Pixel pixel;
                 while ((pixel = pixelManager.nextPixel()) != null)
-                    castRaysAndAverage(pixel.col(), pixel.row());
+                    castRay(pixel.col(), pixel.row());
             }));
         for (var thread : threads) thread.start();
         try {
