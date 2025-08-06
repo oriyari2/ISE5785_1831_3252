@@ -1,3 +1,6 @@
+---
+
+```markdown
 # 🎨 Java Ray Tracing Renderer – Mini Project in Software Engineering
 
 ![Rendered Scene Example](images/grand_piano_on_stage_new.png)
@@ -6,6 +9,8 @@
 This project is a **Ray Tracing Rendering Engine** developed as part of the **"Mini Project in Introduction to Software Engineering"** course.
 
 The goal was to implement a modular, object-oriented rendering engine in **Java**, capable of producing realistic 3D images from scratch, while applying Software Engineering practices such as XP, TDD, and Refactoring.
+
+The project emphasized iterative development, pair programming, and continuous refactoring cycles as part of the course methodology.
 
 ## Features
 - Ray Casting & Ray Tracing engine
@@ -25,7 +30,8 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
   - Primitives (Point, Vector, Ray, Material, Color, etc.)
 
 ## Project Structure
-'''
+```
+
 ├── geometries/
 │   ├── Cylinder, Plane, Sphere, Tube, Polygon, Triangle, etc.
 ├── lighting/
@@ -42,11 +48,14 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
 ├── images/
 │   ├── (Rendered images will go here)
 └── README.md
-'''
+
+```
 
 ## Example Render
 ### Grand Piano on Stage
 ![Piano Scene](images/grand_piano_on_stage_new.png)
+
+(All renders were generated using our ray tracing engine)
 
 ## How to Run
 1. Clone the repository.
@@ -66,3 +75,7 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
 - Designing and implementing a modular software system.
 - Applying software engineering best practices to a complex project.
 - Overcoming graphical and performance challenges through algorithmic design.
+```
+
+---
+
