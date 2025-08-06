@@ -25,6 +25,7 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
   - Primitives (Point, Vector, Ray, Material, Color, etc.)
 
 ## Project Structure
+'''
 ├── geometries/
 │   ├── Cylinder, Plane, Sphere, Tube, Polygon, Triangle, etc.
 ├── lighting/
@@ -41,7 +42,7 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
 ├── images/
 │   ├── (Rendered images will go here)
 └── README.md
-
+'''
 
 ## Example Render
 ### Grand Piano on Stage
