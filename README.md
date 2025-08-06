@@ -1,6 +1,6 @@
 # 🎨 Java Ray Tracing Renderer – Mini Project in Software Engineering
 
-images/grand\_piano\_on\_stage\_new\.png
+![description](images/grand_piano_on_stage_new.png)
 
 ## Overview
 
@@ -55,7 +55,7 @@ The project emphasized iterative development, pair programming, and continuous r
 
 ### Grand Piano on Stage
 
-images/grand\_piano\_on\_stage\_new\.png
+![description](images/grand_piano_on_stage_new.png)
 
 (All renders were generated using our ray tracing engine)
 
