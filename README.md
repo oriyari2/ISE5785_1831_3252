@@ -26,21 +26,22 @@ The goal was to implement a modular, object-oriented rendering engine in **Java*
 
 ## Project Structure
 ├── geometries/
-│ ├── Cylinder, Plane, Sphere, Tube, Polygon, Triangle, etc.
+│   ├── Cylinder, Plane, Sphere, Tube, Polygon, Triangle, etc.
 ├── lighting/
-│ ├── AmbientLight, DirectionalLight, PointLight, SpotLight, etc.
+│   ├── AmbientLight, DirectionalLight, PointLight, SpotLight, etc.
 ├── primitives/
-│ ├── Color, Material, Point, Ray, Vector, etc.
+│   ├── Color, Material, Point, Ray, Vector, etc.
 ├── renderer/
-│ ├── Camera, SimpleRayTracer, PixelManager, ImageWriter, etc.
+│   ├── Camera, SimpleRayTracer, PixelManager, ImageWriter, etc.
 ├── scene/
-│ ├── Scene, SceneBuilderXML
+│   ├── Scene, SceneBuilderXML
 ├── unittests/
-│ ├── geometries/, primitives/, renderer/
-│ ├── Comprehensive test coverage for all modules
+│   ├── geometries/, primitives/, renderer/
+│   ├── Comprehensive test coverage for all modules
 ├── images/
-│ ├── (Rendered images will go here)
+│   ├── (Rendered images will go here)
 └── README.md
+
 
 ## Example Render
 ### Grand Piano on Stage
